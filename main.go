@@ -32,29 +32,37 @@ func main() {
 
 	// main loop
 	for {
-		isValid(rawOutput(arduino), re)
+		_, err := arduino.Write([]byte("<GET_ALL;>"))
+		check(err)
+		scanner := bufio.NewScanner(arduino)
+		scanner.Scan()
+		output := scanner.Text()
+		if isValid(output, re) {
+			println("valid!") // vietoje šito rašyti į duombazę
+		}
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // TODO: perkelti funkciją į main, kad būtų galimybė padaryti laukimo režimą. Arba pabandyti su channels :)
 // Sends GET_ALL command to arduino, returns raw output
-func rawOutput(conn serial.Port) string {
-	_, err := conn.Write([]byte("<GET_ALL;>"))
-	check(err)
-	scanner := bufio.NewScanner(conn)
-	scanner.Scan()
-	return scanner.Text()
-}
+// func rawOutput(conn serial.Port) string {
+// 	_, err := conn.Write([]byte("<GET_ALL;>"))
+// 	check(err)
+// 	scanner := bufio.NewScanner(conn)
+// 	scanner.Scan()
+// 	return scanner.Text()
+// }
 
 // Validates arduino output against regex pattern and few other conditions
 func isValid(s string, re *regexp.Regexp) bool {
-	if s[:4] == "V00=" &&
-		strings.HasSuffix(s, ";") &&
-		len(s) > 168 &&
-		len(re.FindAll([]byte(s), -1)) >= 28 {
-		log.Output(1, s)
-		return true
+	if len(s) > 168 {
+		if s[:4] == "V00=" &&
+			strings.HasSuffix(s, ";") &&
+			len(re.FindAll([]byte(s), -1)) >= 28 {
+			log.Output(1, s)
+			return true
+		}
 	}
 	log.Output(1, "Incorrect data received!")
 	return false
@@ -79,7 +87,6 @@ func findArduino() string {
 	check(err)
 	fmt.Printf("%v", ports)
 	for _, port := range ports {
-		// fmt.Printf("Found port: %s\n", port.Name)
 		if port.IsUSB {
 			for _, sn := range read_sn("serial_numbers.txt") {
 				if sn == port.SerialNumber {
