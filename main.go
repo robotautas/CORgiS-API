@@ -26,10 +26,12 @@ func main() {
 // Sends GET_ALL command to arduino, returns raw output
 func rawOutput() string {
 	mode := &serial.Mode{
+		Parity:   serial.EvenParity,
+		BaudRate: 115200,
 		DataBits: 8,
-		StopBits: 1,
+		StopBits: serial.OneStopBit,
 	}
-	arduino, err := serial.Open(conn)
+	arduino, err := serial.Open("/dev/ttyACM0", mode)
 	check(err)
 	_, err = arduino.Write([]byte("<GET_ALL;>"))
 	check(err)
