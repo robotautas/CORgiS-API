@@ -32,8 +32,15 @@ func main() {
 
 	// main loop
 	for {
+		//TODO: paeksperimentuoti su output flush pries siunciant komanda
 		_, err := arduino.Write([]byte("<GET_ALL;>"))
-		check(err)
+		// If err, reinitialize connection to device
+		if err != nil {
+			fmt.Printf("CONNECTION ERROR! %v", err)
+			arduino, err = serial.Open(findArduino(), mode)
+			check(err)
+		}
+
 		scanner := bufio.NewScanner(arduino)
 		scanner.Scan()
 		output := scanner.Text()
@@ -44,17 +51,7 @@ func main() {
 	}
 }
 
-// TODO: perkelti funkciją į main, kad būtų galimybė padaryti laukimo režimą. Arba pabandyti su channels :)
-// Sends GET_ALL command to arduino, returns raw output
-// func rawOutput(conn serial.Port) string {
-// 	_, err := conn.Write([]byte("<GET_ALL;>"))
-// 	check(err)
-// 	scanner := bufio.NewScanner(conn)
-// 	scanner.Scan()
-// 	return scanner.Text()
-// }
-
-// Validates arduino output against regex pattern and few other conditions
+// Validates arduino output against regex pattern and few other conditions.
 func isValid(s string, re *regexp.Regexp) bool {
 	if len(s) > 168 {
 		if s[:4] == "V00=" &&
@@ -68,7 +65,7 @@ func isValid(s string, re *regexp.Regexp) bool {
 	return false
 }
 
-// Transforms validated output to map, for convenient writing to influxdb
+// Transforms validated output to map, for convenient writing to influxdb.
 func convertToMap(s string) map[string]int {
 	res := make(map[string]int)
 	splitted_s := strings.Split(s, ";")
@@ -81,25 +78,28 @@ func convertToMap(s string) map[string]int {
 	return res
 }
 
-// Scan ports for arduino, return port
+// Scan ports for arduino, return first port which serial number meets one of S/N's in serial_numbers.txt file.
+// If arduino not found, it makes a program wait for device.
 func findArduino() string {
-	ports, err := enumerator.GetDetailedPortsList()
-	check(err)
-	fmt.Printf("%v", ports)
-	for _, port := range ports {
-		if port.IsUSB {
-			for _, sn := range read_sn("serial_numbers.txt") {
-				if sn == port.SerialNumber {
-					return port.Name
+	for {
+		ports, err := enumerator.GetDetailedPortsList()
+		check(err)
+		for _, port := range ports {
+			if port.IsUSB {
+				for _, sn := range read_sn("serial_numbers.txt") {
+					if sn == port.SerialNumber {
+						return port.Name
+					}
 				}
 			}
 		}
+		// TODO: sutvarkyti loginimą, kad nuosekliai logintų pvz. tik su log paketu
+		fmt.Println("\nArduino device not found. Check if connected!")
+		time.Sleep(time.Second * 1)
 	}
-	fmt.Println("Arduino device not found. Check if connected!")
-	return ""
 }
 
-//read serial numbers from file, remove whitespace return array
+//Reads serial numbers from file, removes whitespace and returns array
 func read_sn(path string) []string {
 	file, err := os.Open(path)
 	check(err)
@@ -118,6 +118,7 @@ func read_sn(path string) []string {
 	return lines
 }
 
+// Helper function for dealing with errors
 func check(err error) {
 	if err != nil {
 		panic(err.Error())
