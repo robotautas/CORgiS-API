@@ -2,29 +2,27 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"go.bug.st/serial.v1"
+	"go.bug.st/serial.v1/enumerator"
 )
 
 func main() {
+	// regex patern to validate raw output.
 	re, err := regexp.Compile(`\w{3,4}=\d{1,4};`)
 	check(err)
-	test_str := "V00=0;V01=0;V02=0;V03=0;V04=0;V05=0;V06=0;V07=0;V08=0;T01=0;T02=1;T03=2;T04=1;T05=2;T06=0;T07=2;T08=0;P01=990;P02=990;P03=990;P04=990;P05=990;P06=990;P07=990;P08=990;S00=00;S01=00;PUMP=0;"
-	convertToMap(test_str)
 
-	for {
-		isValid(rawOutput(), re)
-		time.Sleep(1 * time.Second)
-	}
-}
+	findArduino()
+	read_sn("serial_numbers.txt")
 
-// Sends GET_ALL command to arduino, returns raw output
-func rawOutput() string {
+	// connect to arduino
 	mode := &serial.Mode{
 		Parity:   serial.EvenParity,
 		BaudRate: 115200,
@@ -33,9 +31,20 @@ func rawOutput() string {
 	}
 	arduino, err := serial.Open("/dev/ttyACM0", mode)
 	check(err)
-	_, err = arduino.Write([]byte("<GET_ALL;>"))
+	defer arduino.Close()
+
+	// main loop
+	// for {
+	isValid(rawOutput(arduino), re)
+	time.Sleep(1 * time.Second)
+	// }
+}
+
+// Sends GET_ALL command to arduino, returns raw output
+func rawOutput(conn serial.Port) string {
+	_, err := conn.Write([]byte("<GET_ALL;>"))
 	check(err)
-	scanner := bufio.NewScanner(arduino)
+	scanner := bufio.NewScanner(conn)
 	scanner.Scan()
 	return scanner.Text()
 }
@@ -64,6 +73,39 @@ func convertToMap(s string) map[string]int {
 		res[splitted_i[0]] = number
 	}
 	return res
+}
+
+// Scan ports for arduino, return port
+func findArduino() {
+	ports, err := enumerator.GetDetailedPortsList()
+	check(err)
+	fmt.Printf("%v", ports)
+	for _, port := range ports {
+		fmt.Printf("Found port: %s\n", port.Name)
+		if port.IsUSB {
+			fmt.Printf("   USB ID     %s:%s\n", port.VID, port.PID)
+			fmt.Printf("   USB serial %s\n", port.SerialNumber)
+		}
+	}
+}
+
+//read serial numbers from file, remove whitespace return array
+func read_sn(path string) []string {
+	file, err := os.Open(path)
+	check(err)
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		sn := scanner.Text()
+		if strings.Contains(sn, " ") {
+			sn = strings.ReplaceAll(sn, " ", "")
+		}
+		lines = append(lines, sn)
+	}
+	fmt.Printf("Readding serial numbers: %v\n", lines)
+	return lines
 }
 
 func check(err error) {
