@@ -8,8 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jacobsa/go-serial/serial"
-	// "go.bug.st/serial.v1"
+	"go.bug.st/serial.v1"
 )
 
 func main() {
@@ -26,12 +25,9 @@ func main() {
 
 // Sends GET_ALL command to arduino, returns raw output
 func rawOutput() string {
-	conn := serial.OpenOptions{
-		PortName:        "/dev/ttyACM0",
-		BaudRate:        115200,
-		DataBits:        8,
-		StopBits:        1,
-		MinimumReadSize: 4,
+	mode := &serial.Mode{
+		DataBits: 8,
+		StopBits: 1,
 	}
 	arduino, err := serial.Open(conn)
 	check(err)
