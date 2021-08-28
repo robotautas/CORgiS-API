@@ -19,9 +19,6 @@ func main() {
 	re, err := regexp.Compile(`\w{3,4}=\d{1,4};`)
 	check(err)
 
-	findArduino()
-	read_sn("serial_numbers.txt")
-
 	// connect to arduino
 	mode := &serial.Mode{
 		Parity:   serial.EvenParity,
@@ -29,17 +26,18 @@ func main() {
 		DataBits: 8,
 		StopBits: serial.OneStopBit,
 	}
-	arduino, err := serial.Open("/dev/ttyACM0", mode)
+	arduino, err := serial.Open(findArduino(), mode)
 	check(err)
 	defer arduino.Close()
 
 	// main loop
-	// for {
-	isValid(rawOutput(arduino), re)
-	time.Sleep(1 * time.Second)
-	// }
+	for {
+		isValid(rawOutput(arduino), re)
+		time.Sleep(1 * time.Second)
+	}
 }
 
+// TODO: perkelti funkciją į main, kad būtų galimybė padaryti laukimo režimą. Arba pabandyti su channels :)
 // Sends GET_ALL command to arduino, returns raw output
 func rawOutput(conn serial.Port) string {
 	_, err := conn.Write([]byte("<GET_ALL;>"))
@@ -76,17 +74,22 @@ func convertToMap(s string) map[string]int {
 }
 
 // Scan ports for arduino, return port
-func findArduino() {
+func findArduino() string {
 	ports, err := enumerator.GetDetailedPortsList()
 	check(err)
 	fmt.Printf("%v", ports)
 	for _, port := range ports {
-		fmt.Printf("Found port: %s\n", port.Name)
+		// fmt.Printf("Found port: %s\n", port.Name)
 		if port.IsUSB {
-			fmt.Printf("   USB ID     %s:%s\n", port.VID, port.PID)
-			fmt.Printf("   USB serial %s\n", port.SerialNumber)
+			for _, sn := range read_sn("serial_numbers.txt") {
+				if sn == port.SerialNumber {
+					return port.Name
+				}
+			}
 		}
 	}
+	fmt.Println("Arduino device not found. Check if connected!")
+	return ""
 }
 
 //read serial numbers from file, remove whitespace return array
@@ -104,7 +107,7 @@ func read_sn(path string) []string {
 		}
 		lines = append(lines, sn)
 	}
-	fmt.Printf("Readding serial numbers: %v\n", lines)
+	fmt.Printf("Reading serial numbers: %v\n", lines)
 	return lines
 }
 
