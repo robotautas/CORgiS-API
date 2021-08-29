@@ -15,44 +15,43 @@ import (
 )
 
 func main() {
-	// regex patern to validate raw output.
+	// TODO padaryti, kad patikrintų ar yra reikiama duomenu baze ir retention policy jei ne, ja sukurtu
+	// regex patern to validate raw output from arduino. Searches for strings like V00=254;
 	re, err := regexp.Compile(`\w{3,4}=\d{1,4};`)
 	check(err)
 
-	// connect to arduino
 	mode := &serial.Mode{
 		Parity:   serial.EvenParity,
 		BaudRate: 115200,
 		DataBits: 8,
 		StopBits: serial.OneStopBit,
 	}
-	arduino, err := serial.Open(findArduino(), mode)
+	arduino, err := serial.Open(findArduinoPort(), mode)
 	check(err)
 	defer arduino.Close()
 
-	// main loop
 	for {
 		//TODO: paeksperimentuoti su output flush pries siunciant komanda
 		_, err := arduino.Write([]byte("<GET_ALL;>"))
 		// If err, reinitialize connection to device
 		if err != nil {
 			fmt.Printf("CONNECTION ERROR! %v", err)
-			arduino, err = serial.Open(findArduino(), mode)
+			arduino, err = serial.Open(findArduinoPort(), mode)
 			check(err)
 		}
 
 		scanner := bufio.NewScanner(arduino)
 		scanner.Scan()
 		output := scanner.Text()
-		if isValid(output, re) {
+		if outputIsValid(output, re) {
 			println("valid!") // vietoje šito rašyti į duombazę
 		}
 		time.Sleep(1 * time.Second)
 	}
 }
 
-// Validates arduino output against regex pattern and few other conditions.
-func isValid(s string, re *regexp.Regexp) bool {
+// Validates raw arduino output against regex pattern and few other conditions.
+func outputIsValid(s string, re *regexp.Regexp) bool {
 	if len(s) > 168 {
 		if s[:4] == "V00=" &&
 			strings.HasSuffix(s, ";") &&
@@ -66,7 +65,7 @@ func isValid(s string, re *regexp.Regexp) bool {
 }
 
 // Transforms validated output to map, for convenient writing to influxdb.
-func convertToMap(s string) map[string]int {
+func outputToMap(s string) map[string]int {
 	res := make(map[string]int)
 	splitted_s := strings.Split(s, ";")
 	for _, i := range splitted_s[:len(splitted_s)-1] {
@@ -80,13 +79,13 @@ func convertToMap(s string) map[string]int {
 
 // Scan ports for arduino, return first port which serial number meets one of S/N's in serial_numbers.txt file.
 // If arduino not found, it makes a program wait for device.
-func findArduino() string {
+func findArduinoPort() string {
 	for {
 		ports, err := enumerator.GetDetailedPortsList()
 		check(err)
 		for _, port := range ports {
 			if port.IsUSB {
-				for _, sn := range read_sn("serial_numbers.txt") {
+				for _, sn := range getSerialNumbers("serial_numbers.txt") {
 					if sn == port.SerialNumber {
 						return port.Name
 					}
@@ -100,7 +99,7 @@ func findArduino() string {
 }
 
 //Reads serial numbers from file, removes whitespace and returns array
-func read_sn(path string) []string {
+func getSerialNumbers(path string) []string {
 	file, err := os.Open(path)
 	check(err)
 	defer file.Close()
@@ -114,7 +113,7 @@ func read_sn(path string) []string {
 		}
 		lines = append(lines, sn)
 	}
-	fmt.Printf("Reading serial numbers: %v\n", lines)
+	fmt.Printf("\nReading serial numbers: %v\n", lines)
 	return lines
 }
 
