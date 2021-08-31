@@ -27,7 +27,9 @@ func main() {
 	check(err)
 	log.Printf("Connected to database! %v, %s", dur, ver)
 
-	databaseDataExists(con)
+	if !databaseDataExists(con) {
+		createDatabaseData1h(con)
+	}
 
 	mode := &serial.Mode{
 		Parity:   serial.EvenParity,
@@ -152,6 +154,15 @@ func databaseDataExists(con *client.Client) bool {
 		}
 	}
 	return false
+}
+
+// create database data with retention policy 1h
+func createDatabaseData1h(con *client.Client) {
+	q := client.Query{
+		Command: "CREATE DATABASE \"data\" WITH DURATION 1h REPLICATION 1",
+	}
+	_, err := con.Query(q)
+	check(err)
 }
 
 // Helper function for dealing with errors
