@@ -4,12 +4,14 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	client "github.com/influxdata/influxdb1-client"
 	"go.bug.st/serial.v1"
 	"go.bug.st/serial.v1/enumerator"
 )
@@ -19,6 +21,13 @@ func main() {
 	// regex patern to validate raw output from arduino. Searches for strings like V00=254;
 	re, err := regexp.Compile(`\w{3,4}=\d{1,4};`)
 	check(err)
+
+	con := getDBConnection()
+	dur, ver, err := con.Ping()
+	check(err)
+	log.Printf("Connected to database! %v, %s", dur, ver)
+
+	databaseDataExists(con)
 
 	mode := &serial.Mode{
 		Parity:   serial.EvenParity,
@@ -64,7 +73,7 @@ func outputIsValid(s string, re *regexp.Regexp) bool {
 	return false
 }
 
-// Transforms validated output to map, for convenient writing to influxdb.
+// Transforms output like "V00=0;V01=0;V02=0; ... S01=00;PUMP=0;" to map, for convenient writing to influxdb.
 func outputToMap(s string) map[string]int {
 	res := make(map[string]int)
 	splitted_s := strings.Split(s, ";")
@@ -77,7 +86,7 @@ func outputToMap(s string) map[string]int {
 	return res
 }
 
-// Scan ports for arduino, return first port which serial number meets one of S/N's in serial_numbers.txt file.
+// Scan ports for arduino, return first port which serial number meets one of the S/Ns in serial_numbers.txt file.
 // If arduino not found, it makes a program wait for device.
 func findArduinoPort() string {
 	for {
@@ -108,6 +117,7 @@ func getSerialNumbers(path string) []string {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		sn := scanner.Text()
+		// TODO use strings.TrimSpace!
 		if strings.Contains(sn, " ") {
 			sn = strings.ReplaceAll(sn, " ", "")
 		}
@@ -115,6 +125,33 @@ func getSerialNumbers(path string) []string {
 	}
 	fmt.Printf("\nReading serial numbers: %v\n", lines)
 	return lines
+}
+
+// Returns a database connection
+func getDBConnection() *client.Client {
+	host, err := url.Parse(fmt.Sprintf("http://%s:%d", "localhost", 8086))
+	check(err)
+	conf := client.Config{
+		URL: *host,
+	}
+	con, err := client.NewClient(conf)
+	check(err)
+	return con
+}
+
+// Checks if database 'data' is present
+func databaseDataExists(con *client.Client) bool {
+	q := client.Query{
+		Command: "show databases",
+	}
+	response, err := con.Query(q)
+	check(err)
+	for _, v := range response.Results[0].Series[0].Values {
+		if v[0] == "data" {
+			return true
+		}
+	}
+	return false
 }
 
 // Helper function for dealing with errors

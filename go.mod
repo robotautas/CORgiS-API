@@ -6,6 +6,7 @@ go 1.17
 
 require (
 	github.com/creack/goselect v0.1.2 // indirect
+	github.com/influxdata/influxdb1-client v0.0.0-20200827194710-b269163b24ab // indirect
 	golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf // indirect
 )
 
