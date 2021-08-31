@@ -54,9 +54,12 @@ func main() {
 		scanner := bufio.NewScanner(arduino)
 		scanner.Scan()
 		output := scanner.Text()
+
 		if outputIsValid(output, re) {
-			println("valid!") // vietoje šito rašyti į duombazę
+			output := outputToMap(output)
+			writeLineToDatabase(con, output)
 		}
+
 		time.Sleep(1 * time.Second)
 	}
 }
@@ -76,8 +79,8 @@ func outputIsValid(s string, re *regexp.Regexp) bool {
 }
 
 // Transforms output like "V00=0;V01=0;V02=0; ... S01=00;PUMP=0;" to map, for convenient writing to influxdb.
-func outputToMap(s string) map[string]int {
-	res := make(map[string]int)
+func outputToMap(s string) map[string]interface{} {
+	res := make(map[string]interface{})
 	splitted_s := strings.Split(s, ";")
 	for _, i := range splitted_s[:len(splitted_s)-1] {
 		splitted_i := strings.Split(i, "=")
@@ -163,6 +166,24 @@ func createDatabaseData1h(con *client.Client) {
 	}
 	_, err := con.Query(q)
 	check(err)
+}
+
+// write transformed outputs from arduino to database
+func writeLineToDatabase(con *client.Client, output map[string]interface{}) {
+	pt := client.Point{
+		Measurement: "outputs",
+		Fields:      output,
+		Time:        time.Now()}
+	pts := []client.Point{pt}
+	bp := client.BatchPoints{
+		Points:          pts,
+		Database:        "data",
+		RetentionPolicy: "autogen",
+	}
+	_, err := con.Write(bp)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // Helper function for dealing with errors
