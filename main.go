@@ -17,7 +17,6 @@ import (
 )
 
 func main() {
-	// TODO padaryti, kad patikrintų ar yra reikiama duomenu baze ir retention policy jei ne, ja sukurtu
 	// regex patern to validate raw output from arduino. Searches for strings like V00=254;
 	re, err := regexp.Compile(`\w{3,4}=\d{1,4};`)
 	check(err)
@@ -186,7 +185,6 @@ func writeLineToDatabase(con *client.Client, output map[string]interface{}) {
 	}
 }
 
-// Helper function for dealing with errors
 func check(err error) {
 	if err != nil {
 		panic(err.Error())
