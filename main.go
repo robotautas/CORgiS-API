@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"regexp"
@@ -17,7 +19,14 @@ import (
 )
 
 func main() {
-	// regex patern to validate raw output from arduino. Searches for strings like V00=254;
+	go DB_routine()
+	http.HandleFunc("/set", setHandler)
+	http.ListenAndServe(":9999", nil)
+}
+
+// Aquires DB & Microcontroller connections, starts a loop constantly sending command to get all states of parameters in the board, and writes them to database
+func DB_routine() {
+	// regex pattern to validate raw output from arduino. Searches for strings like V00=254;
 	re, err := regexp.Compile(`\w{3,4}=\d{1,4};`)
 	check(err)
 
@@ -43,6 +52,7 @@ func main() {
 	for {
 		//TODO: paeksperimentuoti su output flush pries siunciant komanda
 		_, err := arduino.Write([]byte("<GET_ALL;>"))
+
 		// If err, reinitialize connection to device
 		if err != nil {
 			fmt.Printf("CONNECTION ERROR! %v", err)
@@ -56,7 +66,12 @@ func main() {
 
 		if outputIsValid(output, re) {
 			output := outputToMap(output)
+			jsonString, err := json.Marshal(output)
+			check(err)
+			log.Output(1, string(jsonString))
 			writeLineToDatabase(con, output)
+			// abstraktuoti visą main funkciją į rutiną
+			// perdaryti kad su counteriu istorinius duomenis rašytų tik kas 10 kartą. o i redis - kiekvieną
 		}
 
 		time.Sleep(1 * time.Second)
@@ -69,7 +84,7 @@ func outputIsValid(s string, re *regexp.Regexp) bool {
 		if s[:4] == "V00=" &&
 			strings.HasSuffix(s, ";") &&
 			len(re.FindAll([]byte(s), -1)) >= 28 {
-			log.Output(1, s)
+			// log.Output(1, s)
 			return true
 		}
 	}
@@ -90,7 +105,7 @@ func outputToMap(s string) map[string]interface{} {
 	return res
 }
 
-// Scan ports for arduino, return first port which serial number meets one of the S/Ns in serial_numbers.txt file.
+// Scan ports for arduino, return first port whose serial number meets one of the S/Ns in serial_numbers.txt file.
 // If arduino not found, it makes a program wait for device.
 func findArduinoPort() string {
 	for {
@@ -183,6 +198,14 @@ func writeLineToDatabase(con *client.Client, output map[string]interface{}) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func setHandler(w http.ResponseWriter, r *http.Request) {
+	param := r.URL.Query().Get("param")
+	value := r.URL.Query().Get("value")
+	command := "<SET_" + param + "=" + value + ";>"
+	println(command)
+
 }
 
 func check(err error) {
