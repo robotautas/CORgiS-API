@@ -18,6 +18,15 @@ import (
 	"go.bug.st/serial.v1/enumerator"
 )
 
+var mode = &serial.Mode{
+	Parity:   serial.EvenParity,
+	BaudRate: 115200,
+	DataBits: 8,
+	StopBits: serial.OneStopBit,
+}
+
+var arduino, _ = serial.Open(findArduinoPort(), mode)
+
 func main() {
 	go DB_routine()
 	http.HandleFunc("/set", setHandler)
@@ -27,7 +36,7 @@ func main() {
 // Aquires DB & Microcontroller connections, starts a loop constantly sending command to get all states of parameters in the board, and writes them to database
 func DB_routine() {
 	// regex pattern to validate raw output from arduino. Searches for strings like V00=254;
-	re, err := regexp.Compile(`\w{3,4}=\d{1,4};`)
+	re, err := regexp.Compile(`\w{3,4}=\w{1,4};`)
 	check(err)
 
 	con := getDBConnection()
@@ -39,14 +48,6 @@ func DB_routine() {
 		createDatabaseData1h(con)
 	}
 
-	mode := &serial.Mode{
-		Parity:   serial.EvenParity,
-		BaudRate: 115200,
-		DataBits: 8,
-		StopBits: serial.OneStopBit,
-	}
-	arduino, err := serial.Open(findArduinoPort(), mode)
-	check(err)
 	defer arduino.Close()
 
 	for {
@@ -70,7 +71,6 @@ func DB_routine() {
 			check(err)
 			log.Output(1, string(jsonString))
 			writeLineToDatabase(con, output)
-			// abstraktuoti visą main funkciją į rutiną
 			// perdaryti kad su counteriu istorinius duomenis rašytų tik kas 10 kartą. o i redis - kiekvieną
 		}
 
@@ -80,6 +80,7 @@ func DB_routine() {
 
 // Validates raw arduino output against regex pattern and few other conditions.
 func outputIsValid(s string, re *regexp.Regexp) bool {
+	log.Output(1, s)
 	if len(s) > 168 {
 		if s[:4] == "V00=" &&
 			strings.HasSuffix(s, ";") &&
@@ -88,7 +89,8 @@ func outputIsValid(s string, re *regexp.Regexp) bool {
 			return true
 		}
 	}
-	log.Output(1, "Incorrect data received!")
+
+	// log.Output(1, s)
 	return false
 }
 
@@ -98,9 +100,16 @@ func outputToMap(s string) map[string]interface{} {
 	splitted_s := strings.Split(s, ";")
 	for _, i := range splitted_s[:len(splitted_s)-1] {
 		splitted_i := strings.Split(i, "=")
-		number, err := strconv.Atoi(splitted_i[1])
-		check(err)
-		res[splitted_i[0]] = number
+		// hex > dec
+		if strings.HasPrefix(i, "V") {
+			num, err := strconv.ParseInt(splitted_i[1], 16, 64)
+			check(err)
+			res[splitted_i[0]] = num
+		} else {
+			number, err := strconv.Atoi(splitted_i[1])
+			check(err)
+			res[splitted_i[0]] = number
+		}
 	}
 	return res
 }
@@ -203,9 +212,15 @@ func writeLineToDatabase(con *client.Client, output map[string]interface{}) {
 func setHandler(w http.ResponseWriter, r *http.Request) {
 	param := r.URL.Query().Get("param")
 	value := r.URL.Query().Get("value")
-	command := "<SET_" + param + "=" + value + ";>"
-	println(command)
-
+	command := ""
+	if strings.HasPrefix(param, "PUMP") {
+		command = "<" + param + ";>"
+	} else {
+		command = "<SET_" + param + "=" + value + ";>"
+	}
+	_, err := arduino.Write([]byte(command))
+	check(err)
+	w.Write([]byte(command))
 }
 
 func check(err error) {
