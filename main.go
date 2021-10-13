@@ -75,8 +75,11 @@ func DB_routine() {
 			output := outputToMap(output)
 			jsonString, err := json.Marshal(output)
 			check(err)
+			r.Do("set", "values", string(jsonString))
 			log.Output(1, string(jsonString))
-			writeLineToDatabase(con, output)
+			if counter%20 == 0 {
+				writeLineToDatabase(con, output)
+			}
 			// perdaryti kad su counteriu istorinius duomenis rašytų tik kas 10 kartą. o i redis - kiekvieną
 		}
 		println(counter)
