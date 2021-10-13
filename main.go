@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gomodule/redigo/redis"
 	client "github.com/influxdata/influxdb1-client"
 	"go.bug.st/serial.v1"
 	"go.bug.st/serial.v1/enumerator"
@@ -33,11 +34,16 @@ func main() {
 	http.ListenAndServe(":9999", nil)
 }
 
+var re, _ = regexp.Compile(`\w{3,4}=\w{1,4};`)
+
 // Aquires DB & Microcontroller connections, starts a loop constantly sending command to get all states of parameters in the board, and writes them to database
 func DB_routine() {
 	// regex pattern to validate raw output from arduino. Searches for strings like V00=254;
-	re, err := regexp.Compile(`\w{3,4}=\w{1,4};`)
-	check(err)
+	r, err := redis.Dial("tcp", "localhost:6379")
+	if err != nil {
+		println(err)
+	}
+	defer r.Close()
 
 	con := getDBConnection()
 	dur, ver, err := con.Ping()
@@ -49,7 +55,7 @@ func DB_routine() {
 	}
 
 	defer arduino.Close()
-
+	var counter int64 = 0
 	for {
 		//TODO: paeksperimentuoti su output flush pries siunciant komanda
 		_, err := arduino.Write([]byte("<GET_ALL;>"))
@@ -73,8 +79,9 @@ func DB_routine() {
 			writeLineToDatabase(con, output)
 			// perdaryti kad su counteriu istorinius duomenis rašytų tik kas 10 kartą. o i redis - kiekvieną
 		}
-
-		time.Sleep(1 * time.Second)
+		println(counter)
+		counter++
+		time.Sleep(50 * time.Millisecond)
 	}
 }
 
