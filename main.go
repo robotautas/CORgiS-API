@@ -71,7 +71,7 @@ func DB_routine() {
 			output := outputToMap(output)
 			jsonString, err := json.Marshal(output)
 			check(err)
-			log.Output(1, fmt.Sprintf("Writing to DB: %v", string(jsonString)))
+			log.Output(1, fmt.Sprintf("%v", string(jsonString)))
 			writeLineToDatabase(con, output)
 		} else {
 			log.Output(1, "Invalid output!")
@@ -208,6 +208,8 @@ func writeLineToDatabase(con *client.Client, output map[string]interface{}) {
 }
 
 func setHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
 	param := r.URL.Query().Get("param")
 	value := r.URL.Query().Get("value")
 
@@ -237,7 +239,7 @@ func setHandler(w http.ResponseWriter, r *http.Request) {
 		log.Output(1, fmt.Sprintf("Command sent: %v", command))
 	}
 
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(30 * time.Millisecond)
 
 	// format and send a response depending on parameter
 	if stringInSlice(param, VxxParams) {
@@ -254,7 +256,7 @@ func setHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				logout := fmt.Sprintf("Response FAILED, %v != %v! Reading again..", answer[param], value)
 				log.Output(1, logout)
-				time.Sleep(50 * time.Millisecond)
+				time.Sleep(20 * time.Millisecond)
 			}
 		}
 	} else if stringInSlice(param, pumpParams) {
@@ -288,6 +290,8 @@ func setHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte("error: something unexpected happened"))
 	}
+	finish := time.Since(start)
+	log.Output(1, fmt.Sprintf("Response took %v", finish))
 }
 
 func getHandler(w http.ResponseWriter, r *http.Request) {
@@ -305,9 +309,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 // reads serial output untill it matches validation check
 func singleOutputRead() string {
 	for {
+		arduino.ResetInputBuffer()
 		_, err := arduino.Write([]byte("<GET_ALL;>"))
 		check(err)
-		time.Sleep(30 * time.Millisecond)
+		// time.Sleep(30 * time.Millisecond)
 		scanner := bufio.NewScanner(arduino)
 		scanner.Scan()
 		output := scanner.Text()
