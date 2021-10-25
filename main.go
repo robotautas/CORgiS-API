@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -27,6 +28,14 @@ var mode = &serial.Mode{
 
 var arduino, _ = serial.Open(findArduinoPort(), mode)
 
+var re, _ = regexp.Compile(`\w{3,4}=\w{1,4};`)
+
+var VxxParams = []string{"V00", "V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08"}
+var TxxParams = []string{"T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08"}
+var pumpParams = []string{"PUMP_ON", "PUMP_OFF"}
+
+var OS = runtime.GOOS
+
 func main() {
 	go DB_routine()
 	http.HandleFunc("/", rootHandler)
@@ -34,12 +43,6 @@ func main() {
 	http.HandleFunc("/getall", getHandler)
 	http.ListenAndServe(":9999", nil)
 }
-
-var re, _ = regexp.Compile(`\w{3,4}=\w{1,4};`)
-
-var VxxParams = []string{"V00", "V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08"}
-var TxxParams = []string{"T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08"}
-var pumpParams = []string{"PUMP_ON", "PUMP_OFF"}
 
 // Aquires DB & Microcontroller connections, starts a loop constantly sending command to get all states of parameters in the board, and writes them to database
 func DB_routine() {
@@ -116,21 +119,24 @@ func outputToMap(s string) map[string]interface{} {
 // Scan ports for arduino, return first port whose serial number meets one of the S/Ns in serial_numbers.txt file.
 // If arduino not found, it makes a program wait for device.
 func findArduinoPort() string {
-	for {
-		ports, err := enumerator.GetDetailedPortsList()
-		check(err)
-		for _, port := range ports {
-			if port.IsUSB {
-				for _, sn := range getSerialNumbers("serial_numbers.txt") {
-					if sn == port.SerialNumber {
-						return port.Name
+	if OS != "windows" {
+		for {
+			ports, err := enumerator.GetDetailedPortsList()
+			check(err)
+			for _, port := range ports {
+				if port.IsUSB {
+					for _, sn := range getSerialNumbers("serial_numbers.txt") {
+						if sn == port.SerialNumber {
+							return port.Name
+						}
 					}
 				}
 			}
+			fmt.Println("\nArduino device not found. Check if connected!")
+			time.Sleep(time.Second * 1)
 		}
-		fmt.Println("\nArduino device not found. Check if connected!")
-		time.Sleep(time.Second * 1)
 	}
+	return "COM10"
 }
 
 //Reads serial numbers from file, removes whitespace and returns array
@@ -235,7 +241,9 @@ func setHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		command = "<SET_" + param + "=" + value + ";>"
 		_, err := arduino.Write([]byte(command))
-		check(err)
+		if err != nil {
+			w.Write([]byte("error: could not send a command to device, check if connected!"))
+		}
 		log.Output(1, fmt.Sprintf("Command sent: %v", command))
 	}
 
@@ -370,10 +378,12 @@ func check(err error) {
 func APIRules() string {
 	text := `This is an API part of middleware between graphitizer microcontroller and user interface.
 API sends commands to microcontroller through HTTP GET requests.
+
 SET request examples:
 http://127.0.0.1:9999/set?param=V00&value=255
 http://127.0.0.1:9999/set?param=T01&value=80
 http://127.0.0.1:9999/set?param=PUMP_OFF
+
 GET_ALL:
 http://127.0.0.1:9999/getall
 `
