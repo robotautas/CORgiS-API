@@ -85,7 +85,7 @@ func DB_routine() {
 
 // Validates raw arduino output against regex pattern and few other conditions.
 func outputIsValid(s string, re *regexp.Regexp) bool {
-	if len(s) > 168 {
+	if len(s) > 168 && len(s) < 215 {
 		if s[:4] == "V00=" &&
 			strings.HasSuffix(s, ";") &&
 			len(re.FindAll([]byte(s), -1)) >= 28 {
@@ -98,6 +98,7 @@ func outputIsValid(s string, re *regexp.Regexp) bool {
 
 // Transforms output like "V00=0;V01=0;V02=0; ... S01=00;PUMP=0;" to map, for convenient writing to influxdb.
 func outputToMap(s string) map[string]interface{} {
+	println("STRINGAS: ", s)
 	res := make(map[string]interface{})
 	splitted_s := strings.Split(s, ";")
 	for _, i := range splitted_s[:len(splitted_s)-1] {
