@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -18,6 +19,8 @@ import (
 	"go.bug.st/serial.v1"
 	"go.bug.st/serial.v1/enumerator"
 )
+
+var ids []int
 
 var mode = &serial.Mode{
 	Parity:   serial.EvenParity,
@@ -41,6 +44,8 @@ func main() {
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/set", setHandler)
 	http.HandleFunc("/getall", getHandler)
+	http.HandleFunc("/start", startHandler)
+	http.HandleFunc("/stop", stopHandler)
 	http.ListenAndServe(":9999", nil)
 }
 
@@ -311,8 +316,55 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 	log.Output(1, "Valid response received.")
 }
 
+// Accepts JSON string from request, starts a process routine
+func startHandler(w http.ResponseWriter, r *http.Request) {
+	c := make(chan int)
+
+	// stopper <- "0"
+	decoder := json.NewDecoder(r.Body)
+	body := make([]map[string]string, 1, 1)
+	err := decoder.Decode(&body)
+	if err != nil {
+		panic(err)
+	}
+
+	go process(c, body)
+	cToString := strconv.Itoa(<-c)
+	w.Write([]byte(cToString))
+
+}
+
+func stopHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		panic(err)
+	}
+	ids = append(ids, idInt)
+	fmt.Printf("%v\n", ids)
+}
+
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(APIRules()))
+}
+
+func process(c chan int, r []map[string]string) {
+	id := randInt(1000, 9999)
+	c <- id
+	for _, z := range r {
+		times, err := strconv.ParseInt(z["sleep"], 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		for i := 0; i < int(times); i++ {
+			if contains(ids, id) {
+				println("Stopped!")
+				return
+			}
+			fmt.Printf("%v. %v: %v\n", i+1, z["param"], z["value"])
+			time.Sleep(1 * time.Second)
+		}
+	}
 }
 
 // reads serial output untill it matches validation check
@@ -374,6 +426,20 @@ func check(err error) {
 	if err != nil {
 		panic(err.Error())
 	}
+}
+
+func randInt(min int, max int) int {
+	rand.Seed(time.Now().UTC().UnixNano())
+	return min + rand.Intn(max-min)
+}
+
+func contains(s []int, e int) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
 
 func APIRules() string {

@@ -1,4 +1,71 @@
-stringas_blogas = 'V00=64;V01=61;V02=C7;V03=64;V04=72;V05=CC;V06=;V07=;T02=;T03=;T08=990;P02=990990990;S01=00;V00=64;V01=61;V02=C7;V03=64;V04=72;V05=CC;V06=E1;V07=FB;V08=32;T01=807;T02=251;T03=3;T04=567;T05=441;T06=508;T07=18;T08=812;P01=990;P02=990;P03=990;P04=990;P05=990;P06=990;P07=990;P08=990;S00=00;S01=00;PUMP=0;'
 
-stringas_geras = 'V00=22;V01=22;V02=22;V03=22;V04=22;V05=22;V06=22;V07=22;V08=22;T01=333;T02=333;T03=333;T04=333;T05=333;T06=333;T07=333;T08=333;P01=333;P02=990;P03=990;P04=990;P05=990;P06=990;P07=990;P08=990;S00=333;S01=333;PUMP=0;'
-print(len(stringas_blogas), len(stringas_geras))
+kvadratas = [7, 8, 9, 4, 5, 6, 1, 2, 3]
+laimejimai = [[True, False, False, True, False, False, True, False, False],
+              [False, True, False, False, True, False, False, True, False],
+              [False, False, True, False, False, True, False, False, True],
+              [True, True, True, False, False, False, False, False, False],
+              [False, False, False, True, True, True, False, False, False],
+              [False, False, False, False, False, False, True, True, True],
+              [True, False, False, False, True, False, False, False, True],
+              [False, False, True, False, True, False, True, False, False]]
+
+zaidejas = "X"
+
+
+def atspausdinti_kvadrata():
+    eile = 0
+    for simbolis in kvadratas:
+        print(str(simbolis) + "|", end="")
+        eile += 1
+        if eile == 3:
+            print()
+            eile = 0
+
+
+def tikrinti_laimejima():
+    pakeistas = kvadratas.copy()
+    for counter, x in enumerate(pakeistas):
+        if x == zaidejas:
+            pakeistas[counter] = True
+        else:
+            pakeistas[counter] = False
+    for laimejimas in laimejimai:
+        for nr, langelis in enumerate(laimejimas):
+            if langelis == True:
+                if pakeistas[nr] == langelis:
+                    continue
+                else:
+                    break
+        else:
+            return True
+    return False
+
+
+def ar_lygiosios():
+    for x in kvadratas:
+        if type(x) is int:
+            return False
+    else:
+        return True
+
+
+while True:
+    atspausdinti_kvadrata()
+    pasirinkimas = int(input(f"Žaidėjas {zaidejas}: pasirinkite veiksmą"))
+    if pasirinkimas in kvadratas:
+        kvadratas[kvadratas.index(pasirinkimas)] = zaidejas
+        if ar_lygiosios():
+            print("Lygiosios!")
+            break
+
+        if tikrinti_laimejima():
+            print(f"Žaidėjas {zaidejas} laimėjo!")
+            break
+
+        if zaidejas == "X":
+            zaidejas = "O"
+        else:
+            zaidejas = "X"
+
+    else:
+        print("Nėra tokio pasirinkimo, bandykite dar kartą")
