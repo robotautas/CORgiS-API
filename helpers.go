@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"regexp"
 	"strconv"
@@ -75,6 +76,35 @@ func URLParamValid(s string) bool {
 	if stringInSlice(s, VxxParams) ||
 		stringInSlice(s, TxxParams) ||
 		stringInSlice(s, pumpParams) {
+		return true
+	}
+	return false
+}
+
+// validates map made from POST request JSON STRING
+func validateJSONMap(m []map[string]interface{}) bool {
+	for _, subprocess := range m {
+		commands := subprocess["params"]
+		for _, command := range commands.([]interface{}) {
+			for k, v := range command.(map[string]interface{}) {
+				v := int(v.(float64))
+				if !JSONValueValid(k, v) {
+					fmt.Printf("Invalid combination %v:%v, instruction rejected!\n", k, v)
+					return false
+				}
+			}
+		}
+	}
+	return true
+}
+
+// validates if key-value pair suitable for arduino command (helper for validateJSONMap())
+func JSONValueValid(p string, v int) bool {
+	if stringInSlice(p, VxxParams) && v >= 0 && v < 256 {
+		return true
+	} else if stringInSlice(p, TxxParams) && v >= 0 && v < 1000 {
+		return true
+	} else if stringInSlice(p, pumpParams) {
 		return true
 	}
 	return false
