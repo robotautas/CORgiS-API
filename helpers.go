@@ -84,14 +84,12 @@ func URLParamValid(s string) bool {
 // validates map made from POST request JSON STRING
 func validateJSONMap(m []map[string]interface{}) bool {
 	for _, subprocess := range m {
-		commands := subprocess["params"]
-		for _, command := range commands.([]interface{}) {
-			for k, v := range command.(map[string]interface{}) {
-				v := int(v.(float64))
-				if !JSONValueValid(k, v) {
-					fmt.Printf("Invalid combination %v:%v, instruction rejected!\n", k, v)
-					return false
-				}
+		commands := subprocess["commands"]
+		for param, value := range commands.(map[string]interface{}) {
+			value := int(value.(float64))
+			if !JSONValueValid(param, value) {
+				fmt.Printf("Invalid combination %v:%v, instruction rejected!\n", param, value)
+				return false
 			}
 		}
 	}
