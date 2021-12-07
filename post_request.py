@@ -23,8 +23,8 @@ def send_post():
 
     to_json = json.dumps(all_instructions, indent=2)
     print(to_json)
-    # r = requests.post("http://127.0.0.1:9999/start", json=all_instructions)
-    # print(r.text)
+    r = requests.post("http://127.0.0.1:9999/start", json=all_instructions)
+    print(r.text)
 send_post()
 
 

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -54,22 +53,21 @@ func getSerialNumbers(path string) []string {
 	return lines
 }
 
-func process(c chan int, r []map[string]string) {
+// excecutes instructions from JSON
+func process(c chan int, r []map[string]interface{}) {
 	id := randInt(1000, 9999)
 	c <- id
-	for _, z := range r {
-		times, err := strconv.ParseInt(z["sleep"], 10, 64)
-		if err != nil {
-			panic(err)
+	for _, subprocess := range r {
+		commands := subprocess["commands"]
+		for param, value := range commands.(map[string]interface{}) {
+			//here the commands are sent to arduino
+			fmt.Printf("%v, %v\n", param, value)
 		}
-		for i := 0; i < int(times); i++ {
-			if contains(ids, id) {
-				println("Stopped!")
-				return
-			}
-			fmt.Printf("%v. %v: %v\n", i+1, z["param"], z["value"])
-			time.Sleep(1 * time.Second)
-		}
+		// handle sleep between instructions
+		sleep := subprocess["sleep"].(float64)
+		fmt.Printf("sleeping for %vs", sleep)
+		time.Sleep(time.Duration(sleep) * time.Second)
+		println("Done sleeping!")
 	}
 }
 
