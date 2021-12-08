@@ -55,6 +55,19 @@ func getSerialNumbers(path string) []string {
 }
 
 // excecutes instructions from JSON
+
+// KAIP sustabdyti procesa:
+// 1. reikia kaupti aktyvius subprocesus kintamajame arba redis
+// 2. reikia identifikuoti, kelinta bita pakeicia komanda
+// 3. procesui sustojus iteruoti per aktyvius (sub)procesus (isskyrus lokalu)
+//    ir tikrinti, ar dar kur nors naudojamas lokalaus proceso pakeitimas
+// 4. jeigu kazkur dar naudojamas pakeitimas, palikti kaip yra
+//    jeigu ne, atstatyti i default(?)
+// REIKES:
+// 5. visos logikos binary to dec.
+// 6. instrukcijos kaip tipo(struct)
+//    ir visos tikrinimo logikos
+// KAIP PADARYTI, KAD PROCESO SUSTABDYMAS NESIPYKTU SU PAVIENIAIS NUSTATYMAIS
 func process(c chan int, r []map[string]interface{}) {
 	// unique(not) process id created and sent to handler function
 	id := randInt(1000, 9999)
