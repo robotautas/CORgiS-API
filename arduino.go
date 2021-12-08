@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -55,20 +56,29 @@ func getSerialNumbers(path string) []string {
 
 // excecutes instructions from JSON
 func process(c chan int, r []map[string]interface{}) {
+	// unique(not) process id created and sent to handler function
 	id := randInt(1000, 9999)
 	c <- id
+	// iterating through JSON converted to native
 	for _, subprocess := range r {
 		commands := subprocess["commands"]
 		for param, value := range commands.(map[string]interface{}) {
 			//here the commands are sent to arduino
-			fmt.Printf("%v, %v\n", param, value)
+			value = int(value.(float64))
+			command := fmt.Sprintf("<SET_%v=%v;>", param, value)
+			println(command)
+			// arduino.ResetInputBuffer()
+			_, err := arduino.Write([]byte(command))
+			check(err)
 		}
 		// handle sleep between instructions
-		sleep := subprocess["sleep"].(float64)
-		fmt.Printf("sleeping for %vs", sleep)
-		time.Sleep(time.Duration(sleep) * time.Second)
-		println("Done sleeping!")
+		sleep := int(subprocess["sleep"].(float64))
+		fmt.Printf("sleeping for %vs\n", sleep)
+		for i := 0; i < sleep; i++ {
+			time.Sleep(1 * time.Second)
+		}
 	}
+	log.Output(1, fmt.Sprintf("Process %d completed!", c))
 }
 
 // reads serial output untill it matches validation check

@@ -24,7 +24,7 @@ func outputIsValid(s string, re *regexp.Regexp) bool {
 
 // Transforms output like "V00=0;V01=0;V02=0; ... S01=00;PUMP=0;" to map, for convenient writing to influxdb.
 func outputToMap(s string) map[string]interface{} {
-	println("STRINGAS: ", s)
+	// println("STRINGAS: ", s)
 	res := make(map[string]interface{})
 	splitted_s := strings.Split(s, ";")
 	for _, i := range splitted_s[:len(splitted_s)-1] {
@@ -130,7 +130,7 @@ func contains(s []int, e int) bool {
 
 func APIRules() string {
 	text := `This is an API part of middleware between graphitizer microcontroller and user interface.
-API sends commands to microcontroller through HTTP GET requests.
+API sends commands to microcontroller through HTTP GET or POST requests.
 
 SET request examples:
 http://127.0.0.1:9999/set?param=V00&value=255
@@ -139,6 +139,22 @@ http://127.0.0.1:9999/set?param=PUMP_OFF
 
 GET_ALL:
 http://127.0.0.1:9999/getall
+
+START:
+Expects a set of instructions in JSON from a post request to /start endpoint like
+
+[
+    {
+        "commands": {"V00": 125,"T01": 999},
+    	"sleep": 20
+    },
+    { 
+		"commands": {"V01": 256, "T05": 25, "PUMP_ON": 0},        
+        "sleep": 60
+    }
+]
+
+responds with unique id of a process, for pausing/stopping it later.
 `
 	return text
 }
