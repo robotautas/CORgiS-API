@@ -15,6 +15,8 @@ import (
 
 var ids []int
 
+type changes [][2]int
+
 var mode = &serial.Mode{
 	Parity:   serial.EvenParity,
 	BaudRate: 115200,

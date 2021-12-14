@@ -1,10 +1,36 @@
 [
     {
-        "commands": {"V00": 125,"T01": 999},
-    	"sleep": 20
+        "commands": {
+            "V00": 125,
+            "T01": 999
+        },
+        "sleep": 20
     },
-    { 
-		"commands": {"V01": 256, "T05": 25, "PUMP_ON": 0},        
+    {
+        "commands": {
+            "V01": 256,
+            "T05": 25,
+            "PUMP_ON": 0
+        },
         "sleep": 60
     }
+]
+
+["sitas (virsuje) netinka, nes dec verte neparodo, 
+kokie reikalingi bitai butent sitai instrukcijai, 
+jeigu jie sutampa su jau esanciais nustatymais",]
+
+[
+    {
+        "VOO": [[0, 1], [3, 0], [7, 1]],
+        "VO1": [[0, 0]],
+        "T01": 255,
+        "PUMP": 1,
+        "Sleep": 20
+    },
+    {
+        "V00": [[3, 1]],
+        "T03": 300,
+        "Sleep": 30
+    } 
 ]

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"strconv"
@@ -45,4 +46,24 @@ func binArrayToDec(a []int) int {
 		log.Panic(err)
 	}
 	return int(res)
+}
+
+// given the
+// current state of one of Vxx's represented by decimal value and
+// what conditions have to be fulfilled for (sub)process to run -
+// represented by value of type changes
+// returns a dec Vxx number to be sent to the arduino device
+func VxxChangeToDec(presentVal int, c changes) int {
+	presentValToBin := decToBinArray(presentVal)
+	newBinArr := append([]int(nil), presentValToBin...)
+	for _, change := range c {
+		if presentValToBin[change[0]] != change[1] {
+			newBinArr[change[0]] = change[1]
+		}
+	}
+	fmt.Printf("%v\n", c)
+	fmt.Printf("%v\n", presentValToBin)
+	fmt.Printf("%v\n", newBinArr)
+	fmt.Printf("%v\n", binArrayToDec(newBinArr))
+	return binArrayToDec(newBinArr)
 }

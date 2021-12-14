@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"regexp"
 	"strconv"
@@ -75,7 +76,8 @@ func URLValueValid(p string, v string) bool {
 func URLParamValid(s string) bool {
 	if stringInSlice(s, VxxParams) ||
 		stringInSlice(s, TxxParams) ||
-		stringInSlice(s, pumpParams) {
+		stringInSlice(s, pumpParams) ||
+		s == "Sleep" {
 		return true
 	}
 	return false
@@ -84,12 +86,32 @@ func URLParamValid(s string) bool {
 // validates map made from POST request JSON STRING
 func validateJSONMap(m []map[string]interface{}) bool {
 	for _, subprocess := range m {
-		commands := subprocess["commands"]
-		for param, value := range commands.(map[string]interface{}) {
-			value := int(value.(float64))
-			if !JSONValueValid(param, value) {
-				fmt.Printf("Invalid combination %v:%v, instruction rejected!\n", param, value)
+		for param, value := range subprocess {
+			if !URLParamValid(param) {
+				log.Output(1, fmt.Sprintf("JSON validation failed, parameter %v is not valid", param))
 				return false
+			} else if stringInSlice(param, VxxParams) {
+				for _, change := range value.([]interface{}) {
+					changeArray := make([]int, 0)
+					for _, num := range change.([]interface{}) {
+						changeArray = append(changeArray, int(num.(float64)))
+					}
+					if changeArray[0] < 0 || changeArray[0] > 7 {
+						err := fmt.Sprintf("JSON validation failed. Change %v is invalid, first value must be in range 0-7.", change)
+						log.Output(1, err)
+						return false
+					} else if changeArray[1] < 0 || changeArray[1] > 1 {
+						err := fmt.Sprintf("JSON validation failed. Change %v is invalid, second value must be 0 or 1.", change)
+						log.Output(1, err)
+						return false
+					}
+				}
+			} else if stringInSlice(param, TxxParams) {
+				if int(value.(float64)) <= 0 || int(value.(float64)) >= 1000 {
+					err := fmt.Sprintf("JSON validation failed. Temperature value %v is out of range (0-999)", int(value.(float64)))
+					log.Output(1, err)
+					return false
+				}
 			}
 		}
 	}
