@@ -1,11 +1,63 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
 	"strconv"
 )
+
+// structure to hold one subprocess of JSON instruction
+// used for marshalling and unmarshalling JSON instructions
+type Subprocess struct {
+	Vxx   map[string][][2]int `json:"Vxx,omitempty"`
+	Txx   map[string]int      `json:"Txx,omitempty"`
+	Pump  string              `json:"PUMP,omitempty"`
+	Sleep int                 `json:"Sleep"`
+}
+
+var exampleJSON string = `[
+    {
+        "Vxx": {
+            "V00": [[0, 1], [3, 0], [7, 1]],
+            "V01": [[0, 0]]
+        },
+        "Txx": {
+            "T01": 255
+        },
+        "PUMP": "ON",
+        "Sleep": 10
+    },
+    {
+        "Vxx":{"V00": [[3, 1]]},
+        "Txx": {"T03": 300},
+        "PUMP": "OFF",
+        "Sleep": 30
+    } 
+]`
+
+//for debug
+var exampleStruct []Subprocess = []Subprocess{
+	{
+		Vxx: map[string][][2]int{
+			"V00": {[2]int{5, 1}, [2]int{3, 0}},
+		},
+		Sleep: 20,
+	},
+	{
+		Vxx: map[string][][2]int{
+			"V00": {[2]int{5, 1}, [2]int{3, 0}},
+			"V01": {[2]int{1, 0}, [2]int{3, 1}},
+		},
+		Txx: map[string]int{
+			"T01": 255,
+			"T02": 50,
+		},
+		Pump:  "OFF",
+		Sleep: 20,
+	},
+}
 
 // returns array of ones & zeros of length 8, representing a binary value of given parameter
 func decToBinArray(d int) []int {
@@ -61,9 +113,29 @@ func VxxChangeToDec(presentVal int, c changes) int {
 			newBinArr[change[0]] = change[1]
 		}
 	}
+	// some debugging prints, to be erased in future
 	fmt.Printf("%v\n", c)
 	fmt.Printf("%v\n", presentValToBin)
 	fmt.Printf("%v\n", newBinArr)
 	fmt.Printf("%v\n", binArrayToDec(newBinArr))
 	return binArrayToDec(newBinArr)
+}
+
+func JSONToInstruction(s string) []Subprocess {
+	var Structure []Subprocess
+	err := json.Unmarshal([]byte(s), &Structure)
+	if err != nil {
+		message := fmt.Sprintf("Invalid JSON: %v", err)
+		log.Output(1, message)
+	}
+	return Structure
+}
+
+func InstructionToJSON(sp []Subprocess) string {
+	res, err := json.Marshal(sp)
+	if err != nil {
+		message := fmt.Sprintf("Invalid JSON: %v", err)
+		log.Output(1, message)
+	}
+	return string(res)
 }

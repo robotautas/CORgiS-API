@@ -141,7 +141,7 @@ func randInt(min int, max int) int {
 	return min + rand.Intn(max-min)
 }
 
-func contains(s []int, e int) bool {
+func intInSlice(s []int, e int) bool {
 	for _, a := range s {
 		if a == e {
 			return true
@@ -151,7 +151,7 @@ func contains(s []int, e int) bool {
 }
 
 func APIRules() string {
-	text := `This is an API part of middleware between graphitizer microcontroller and user interface.
+	text := fmt.Sprintf(`This is an API part of middleware between graphitizer microcontroller and user interface.
 API sends commands to microcontroller through HTTP GET or POST requests.
 
 SET request examples:
@@ -165,18 +165,16 @@ http://127.0.0.1:9999/getall
 START:
 Expects a set of instructions in JSON from a post request to /start endpoint like
 
-[
-    {
-        "commands": {"V00": 125,"T01": 999},
-    	"sleep": 20
-    },
-    { 
-		"commands": {"V01": 256, "T05": 25, "PUMP_ON": 0},        
-        "sleep": 60
-    }
-]
+%v
 
+Vxx, Txx and PUMP parameters are .
 responds with unique id of a process, for pausing/stopping it later.
-`
+
+STOP:
+stops a process with unique id, provided in URL
+http://127.0.0.1:9999/set?id=2345
+
+
+`, exampleJSON)
 	return text
 }
