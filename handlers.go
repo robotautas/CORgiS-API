@@ -109,22 +109,25 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 
 // Accepts JSON string from request, starts a process routine
 func StartHandler(w http.ResponseWriter, r *http.Request) {
-	c := make(chan int)
+	// c := make(chan int)
 	decoder := json.NewDecoder(r.Body)
-	body := make([]map[string]interface{}, 1)
+	body := make([]Task, 1)
 	err := decoder.Decode(&body)
 	if err != nil {
 		panic(err)
 	}
 
-	if validateJSONMap(body) {
+	if validateJSONTasks(body) {
 		println("JSON OK.")
+		fmt.Printf("%v", body)
 	} else {
 		println("Faulty JSON!")
 	}
 
-	go process(c, body)
-	cToString := strconv.Itoa(<-c)
+	// go process(c, body)
+
+	// cToString := strconv.Itoa(<-c)
+	cToString := "Aičū"
 	w.Write([]byte(cToString))
 
 }

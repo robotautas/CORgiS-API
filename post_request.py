@@ -43,18 +43,23 @@ def send_post():
 
 fast_json = '''
 [
-{
-    "V00": [[0, 1], [3, 0], [7, 1]],
-    "V01": [[0, 1]],
-    "T01": 1000,
-    "PUMP_ON": 1,
-    "bSleep": 20
-},
-{
-    "V00": [[3, 1]],
-    "T03": 300,
-    "Sleep": 30
-} 
+    {
+        "Vxx": {
+            "V00": [[0, 1], [3, 0], [7, 1]],
+            "V01": [[0, 0]]
+        },
+        "Txx": {
+            "T01": 255
+        },
+        "PUMP": "ON",
+        "Sleep": 10
+    },
+    {
+        "Vxx":{"V00": [[3, 1]]},
+        "Txx": {"T03": 300},
+        "PUMP": "OFF",
+        "Sleep": 30
+    } 
 ]'''
 fast_dict = json.loads(fast_json)
 print(fast_dict)

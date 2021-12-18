@@ -84,34 +84,33 @@ func URLParamValid(s string) bool {
 }
 
 // validates map made from POST request JSON STRING
-func validateJSONMap(m []map[string]interface{}) bool {
-	for _, subprocess := range m {
-		for param, value := range subprocess {
-			if !URLParamValid(param) {
-				log.Output(1, fmt.Sprintf("JSON validation failed, parameter %v is not valid", param))
+func validateJSONTasks(t []Task) bool {
+	for _, task := range t {
+		for p, v := range task.Vxx {
+			if !stringInSlice(p, VxxParams) {
+				log.Output(1, fmt.Sprintf("JSON validation failed, parameter %v is not valid", p))
 				return false
-			} else if stringInSlice(param, VxxParams) {
-				for _, change := range value.([]interface{}) {
-					changeArray := make([]int, 0)
-					for _, num := range change.([]interface{}) {
-						changeArray = append(changeArray, int(num.(float64)))
-					}
-					if changeArray[0] < 0 || changeArray[0] > 7 {
-						err := fmt.Sprintf("JSON validation failed. Change %v is invalid, first value must be in range 0-7.", change)
-						log.Output(1, err)
-						return false
-					} else if changeArray[1] < 0 || changeArray[1] > 1 {
-						err := fmt.Sprintf("JSON validation failed. Change %v is invalid, second value must be 0 or 1.", change)
-						log.Output(1, err)
-						return false
-					}
-				}
-			} else if stringInSlice(param, TxxParams) {
-				if int(value.(float64)) <= 0 || int(value.(float64)) >= 1000 {
-					err := fmt.Sprintf("JSON validation failed. Temperature value %v is out of range (0-999)", int(value.(float64)))
+			}
+			for _, r := range v {
+				if r[0] < 0 || r[0] > 7 {
+					err := fmt.Sprintf("JSON validation failed. Combination %v is invalid, first value must be in range 0-7.", r)
+					log.Output(1, err)
+					return false
+				} else if r[1] < 0 || r[1] > 1 {
+					err := fmt.Sprintf("JSON validation failed. Combination %v is invalid, second value must be 0 or 1.", r)
 					log.Output(1, err)
 					return false
 				}
+			}
+		}
+		for p, v := range task.Txx {
+			if !stringInSlice(p, TxxParams) {
+				log.Output(1, fmt.Sprintf("JSON validation failed, parameter %v is not valid", p))
+				return false
+			} else if v <= 0 || v >= 1000 {
+				err := fmt.Sprintf("JSON validation failed. Temperature value %v is out of range (0-999)", v)
+				log.Output(1, err)
+				return false
 			}
 		}
 	}

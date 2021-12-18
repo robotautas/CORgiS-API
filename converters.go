@@ -8,9 +8,9 @@ import (
 	"strconv"
 )
 
-// structure to hold one subprocess of JSON instruction
+// structure to hold one Task of JSON instruction
 // used for marshalling and unmarshalling JSON instructions
-type Subprocess struct {
+type Task struct {
 	Vxx   map[string][][2]int `json:"Vxx,omitempty"`
 	Txx   map[string]int      `json:"Txx,omitempty"`
 	Pump  string              `json:"PUMP,omitempty"`
@@ -38,7 +38,7 @@ var exampleJSON string = `[
 ]`
 
 //for debug
-var exampleStruct []Subprocess = []Subprocess{
+var exampleStruct []Task = []Task{
 	{
 		Vxx: map[string][][2]int{
 			"V00": {[2]int{5, 1}, [2]int{3, 0}},
@@ -121,8 +121,8 @@ func VxxChangeToDec(presentVal int, c changes) int {
 	return binArrayToDec(newBinArr)
 }
 
-func JSONToInstruction(s string) []Subprocess {
-	var Structure []Subprocess
+func JSONToInstruction(s string) []Task {
+	var Structure []Task
 	err := json.Unmarshal([]byte(s), &Structure)
 	if err != nil {
 		message := fmt.Sprintf("Invalid JSON: %v", err)
@@ -131,7 +131,7 @@ func JSONToInstruction(s string) []Subprocess {
 	return Structure
 }
 
-func InstructionToJSON(sp []Subprocess) string {
+func InstructionToJSON(sp []Task) string {
 	res, err := json.Marshal(sp)
 	if err != nil {
 		message := fmt.Sprintf("Invalid JSON: %v", err)
