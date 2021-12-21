@@ -36,6 +36,20 @@ func removeFromKillList(id int) {
 	}
 }
 
+func idInKillList(id int) bool {
+	client := pool.Get()
+	defer client.Close()
+	res, err := client.Do("LRANGE", "killList", 0, -1)
+	if err != nil {
+		panic(err)
+	}
+	list := res.([]int)
+	for _, i := range list {
+		println(i)
+	}
+	return true
+}
+
 func storeActiveTask(id int, task string) {
 	client := pool.Get()
 	defer client.Close()
@@ -52,4 +66,14 @@ func removeActiveTask(id int) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func readActiveTask(id int) string {
+	client := pool.Get()
+	defer client.Close()
+	task, err := client.Do("GET", id)
+	if err != nil {
+		panic(err)
+	}
+	return string(task.([]uint8))
 }

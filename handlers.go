@@ -134,11 +134,13 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 
 func StopHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
+
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
 		panic(err)
 	}
 	ids = append(ids, idInt)
+	addToKillList(idInt)
 	fmt.Printf("%v\n", ids)
 }
 
