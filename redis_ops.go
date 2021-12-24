@@ -1,6 +1,10 @@
 package main
 
-import "github.com/gomodule/redigo/redis"
+import (
+	"strconv"
+
+	"github.com/gomodule/redigo/redis"
+)
 
 var pool = newPool()
 
@@ -36,24 +40,40 @@ func removeFromKillList(id int) {
 	}
 }
 
-func idInKillList(id int) bool {
+// checks if int value present in redis array. Name should be either 'killList' or "activeTaskIds"
+func idInRedisArray(name string, id int) bool {
 	client := pool.Get()
 	defer client.Close()
-	res, err := client.Do("LRANGE", "killList", 0, -1)
+	res, err := client.Do("LRANGE", name, 0, -1)
+
 	if err != nil {
 		panic(err)
 	}
-	list := res.([]int)
+
+	list := res.([]interface{})
 	for _, i := range list {
-		println(i)
+		s := string(i.([]byte))
+		num, err := strconv.Atoi(s)
+
+		if err != nil {
+			panic(err)
+		}
+
+		if num == id {
+			return true
+		}
 	}
-	return true
+	return false
 }
 
 func storeActiveTask(id int, task string) {
 	client := pool.Get()
 	defer client.Close()
-	_, err := client.Do("SET", id, task)
+	_, err := client.Do("LPUSH", "activeTaskIds", id)
+	if err != nil {
+		panic(err)
+	}
+	_, err = client.Do("SET", id, task)
 	if err != nil {
 		panic(err)
 	}
@@ -76,4 +96,24 @@ func readActiveTask(id int) string {
 		panic(err)
 	}
 	return string(task.([]uint8))
+}
+
+func getActiveTaskIds() []int {
+	client := pool.Get()
+	defer client.Close()
+	res, err := client.Do("LRANGE", "activeTaskIds", 0, -1)
+	if err != nil {
+		panic(err)
+	}
+	interfaceList := res.([]interface{})
+	var list []int
+	for _, i := range interfaceList {
+		s := string(i.([]byte))
+		num, err := strconv.Atoi(s)
+		if err != nil {
+			panic(err)
+		}
+		list = append(list, num)
+	}
+	return list
 }

@@ -68,29 +68,37 @@ func getSerialNumbers(path string) []string {
 // 6. instrukcijos kaip tipo(struct)
 //    ir visos tikrinimo logikos
 // KAIP PADARYTI, KAD PROCESO SUSTABDYMAS NESIPYKTU SU PAVIENIAIS NUSTATYMAIS
-func process(c chan int, r []map[string]interface{}) {
-	// unique(not) process id created and sent to handler function
-	id := randInt(1000, 9999)
-	c <- id
-	// iterating through JSON converted to native
-	for _, subprocess := range r {
-		commands := subprocess["commands"]
-		for param, value := range commands.(map[string]interface{}) {
-			//here the commands are sent to arduino
-			value = int(value.(float64))
-			command := fmt.Sprintf("<SET_%v=%v;>", param, value)
-			println(command)
-			// arduino.ResetInputBuffer()
-			_, err := arduino.Write([]byte(command))
-			check(err)
-		}
-		// handle sleep between instructions
-		sleep := int(subprocess["sleep"].(float64))
-		fmt.Printf("sleeping for %vs\n", sleep)
-		for i := 0; i < sleep; i++ {
-			time.Sleep(1 * time.Second)
-		}
-	}
+func process(c chan int, r []Task) {
+	// // unique active instruction id created
+	// var id int
+	// for {
+	// 	random := randInt(1000, 9999)
+	// 	if !idInRedisArray("activeTaskIds", random) {
+	// 		id = random
+	// 		break
+	// 	}
+	// }
+
+	// c <- id
+	// // iterating through JSON converted to native
+	// for _, subprocess := range r {
+	// 	commands := subprocess["commands"]
+	// 	for param, value := range commands.(map[string]interface{}) {
+	// 		//here the commands are sent to arduino
+	// 		value = int(value.(float64))
+	// 		command := fmt.Sprintf("<SET_%v=%v;>", param, value)
+	// 		println(command)
+	// 		// arduino.ResetInputBuffer()
+	// 		_, err := arduino.Write([]byte(command))
+	// 		check(err)
+	// 	}
+	// 	// handle sleep between instructions
+	// 	sleep := int(subprocess["sleep"].(float64))
+	// 	fmt.Printf("sleeping for %vs\n", sleep)
+	// 	for i := 0; i < sleep; i++ {
+	// 		time.Sleep(1 * time.Second)
+	// 	}
+	// }
 	log.Output(1, fmt.Sprintf("Process %d completed!", c))
 }
 

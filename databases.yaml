@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  influxdb:
+    image: influxdb:1.8-alpine
+    ports:
+      - "8086:8086"
+    volumes:
+      - stream-data:/var/lib/influxdb
+  redisJSON:
+    image: redislabs/rejson:latest
+    ports:
+      - "6379:6379"
+volumes:
+  stream-data:
+
+

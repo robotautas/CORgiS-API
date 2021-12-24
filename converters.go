@@ -139,3 +139,9 @@ func InstructionToJSON(sp []Task) string {
 	}
 	return string(res)
 }
+
+// given t Task
+// and active Task from active tasks list
+func taskConflicts(t Task) bool {
+	return true
+}
