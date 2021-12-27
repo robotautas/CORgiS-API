@@ -6,15 +6,18 @@ import (
 	"log"
 	"math"
 	"strconv"
+	"time"
 )
 
 // structure to hold one Task of JSON instruction
 // used for marshalling and unmarshalling JSON instructions
 type Task struct {
-	Vxx   map[string][][2]int `json:"Vxx,omitempty"`
-	Txx   map[string]int      `json:"Txx,omitempty"`
-	Pump  string              `json:"PUMP,omitempty"`
-	Sleep int                 `json:"Sleep"`
+	Vxx        map[string][][2]int `json:"Vxx,omitempty"`
+	Txx        map[string]int      `json:"Txx,omitempty"`
+	Pump       string              `json:"PUMP,omitempty"`
+	Sleep      int                 `json:"Sleep"`
+	StartTime  time.Time           `json:"start,omitempty"`
+	FinishTime time.Time           `json:"finish,omitempty"`
 }
 
 var exampleJSON string = `[
@@ -143,5 +146,23 @@ func InstructionToJSON(sp []Task) string {
 // given t Task
 // and active Task from active tasks list
 func taskConflicts(t Task) bool {
+
 	return true
+}
+
+func addTimeIntervals(tasks []Task) []Task {
+	var modified []Task
+	startTime := time.Now().Local()
+	for _, task := range tasks {
+		finishTime := startTime.Add(time.Second * time.Duration(task.Sleep))
+		task.addTimeInterval(startTime, finishTime)
+		modified = append(modified, task)
+		startTime = finishTime
+	}
+	return modified
+}
+
+func (t *Task) addTimeInterval(s time.Time, f time.Time) {
+	t.StartTime = s
+	t.FinishTime = f
 }

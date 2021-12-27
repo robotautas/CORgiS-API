@@ -116,7 +116,8 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-
+	tasks := addTimeIntervals(body)
+	println(tasks)
 	if validateJSONTasks(body) {
 		println("JSON OK.")
 		fmt.Printf("%v", body)
@@ -127,7 +128,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 	// go process(c, body)
 
 	// cToString := strconv.Itoa(<-c)
-	cToString := "Aičū"
+	cToString := "Ačiū"
 	w.Write([]byte(cToString))
 
 }

@@ -73,7 +73,7 @@ func storeActiveTask(id int, task string) {
 	if err != nil {
 		panic(err)
 	}
-	_, err = client.Do("SET", id, task)
+	_, err = client.Do("JSON.SET", id, ".", task)
 	if err != nil {
 		panic(err)
 	}
