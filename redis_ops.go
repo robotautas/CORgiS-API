@@ -134,8 +134,14 @@ func getTasksTimeInterval(id int) (time.Time, time.Time) {
 	// finish, _ := time.Parse(string(f.([]uint8)), "2021-12-28T16:56:13.647044744+02:00")
 	startString := string(s.([]uint8))[1 : len(string(s.([]uint8)))-1]
 	finishString := string(f.([]uint8))[1 : len(string(f.([]uint8)))-1]
-	startTime, _ := time.Parse(startString, "2021-12-28T16:56:13.647044744+02:00")
-	finishTime, _ := time.Parse(finishString, "2021-12-28T16:56:13.647044744+02:00")
+	startTime, err := time.Parse(time.RFC3339, startString)
+	if err != nil {
+		panic(err)
+	}
+	finishTime, err := time.Parse(time.RFC3339, finishString)
+	if err != nil {
+		panic(err)
+	}
 	return startTime, finishTime
 
 }
