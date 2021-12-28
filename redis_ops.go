@@ -2,6 +2,7 @@ package main
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/gomodule/redigo/redis"
 )
@@ -118,16 +119,32 @@ func getActiveTaskIds() []int {
 	return list
 }
 
-// func getTasksTimeInterval(id int) (time.Time, time.Time) {
-// 	client := pool.Get()
-// 	defer client.Close()
-// 	s, err := client.Do("JSON.GET", id, ".startTime")
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	f, err := client.Do("JSON.GET", id, ".finishTime")
-// 	if err != nil {
-// 		panic(err)
-// 	}
+func getTasksTimeInterval(id int) (time.Time, time.Time) {
+	client := pool.Get()
+	defer client.Close()
+	s, err := client.Do("JSON.GET", id, ".start")
+	if err != nil {
+		panic(err)
+	}
+	f, err := client.Do("JSON.GET", id, ".finish")
+	if err != nil {
+		panic(err)
+	}
+	// start, _ := time.Parse(string(s.([]uint8)), "2021-12-28T16:56:13.647044744+02:00")
+	// finish, _ := time.Parse(string(f.([]uint8)), "2021-12-28T16:56:13.647044744+02:00")
+	startString := string(s.([]uint8))[1 : len(string(s.([]uint8)))-1]
+	finishString := string(f.([]uint8))[1 : len(string(f.([]uint8)))-1]
+	startTime, _ := time.Parse(startString, "2021-12-28T16:56:13.647044744+02:00")
+	finishTime, _ := time.Parse(finishString, "2021-12-28T16:56:13.647044744+02:00")
+	return startTime, finishTime
 
-// }
+}
+
+func flushRedis() {
+	client := pool.Get()
+	defer client.Close()
+	_, err := client.Do("FLUSHALL")
+	if err != nil {
+		panic(err)
+	}
+}

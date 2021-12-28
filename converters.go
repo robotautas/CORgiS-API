@@ -143,6 +143,15 @@ func InstructionToJSON(sp []Task) string {
 	return string(res)
 }
 
+func taskToJSON(t Task) string {
+	res, err := json.Marshal(t)
+	if err != nil {
+		message := fmt.Sprintf("Invalid JSON: %v", err)
+		log.Output(1, message)
+	}
+	return string(res)
+}
+
 // given t Task
 // and active Task from active tasks list
 // func taskConflicts(tasks []Task) bool {

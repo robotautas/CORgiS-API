@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 // Validates raw arduino output against regex pattern and few other conditions.
@@ -131,7 +133,9 @@ func JSONValueValid(p string, v int) bool {
 
 func check(err error) {
 	if err != nil {
+		color.Set(color.FgRed)
 		panic(err.Error())
+		color.Unset()
 	}
 }
 

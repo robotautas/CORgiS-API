@@ -125,6 +125,20 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 		color.Set(color.FgCyan)
 		fmt.Printf("\nTimed tasks: %v\n", tasks)
 		color.Unset()
+		// just to have some examples
+		for _, task := range tasks {
+			randNum := randInt(100, 999)
+			taskJSON := taskToJSON(task)
+			fmt.Printf("JSON: %s", taskJSON)
+			storeActiveTask(randNum, taskJSON)
+		}
+
+		for _, id := range getActiveTaskIds() {
+			comparableStartTime, comparableFinishTime := getTasksTimeInterval(id)
+			color.Set(color.BgBlue)
+			fmt.Printf("ID: %v, s: %v, f: %v\n", id, comparableStartTime, comparableFinishTime)
+			color.Unset()
+		}
 
 	} else {
 		println("Faulty JSON!")
