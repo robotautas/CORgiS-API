@@ -117,3 +117,17 @@ func getActiveTaskIds() []int {
 	}
 	return list
 }
+
+// func getTasksTimeInterval(id int) (time.Time, time.Time) {
+// 	client := pool.Get()
+// 	defer client.Close()
+// 	s, err := client.Do("JSON.GET", id, ".startTime")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	f, err := client.Do("JSON.GET", id, ".finishTime")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// }

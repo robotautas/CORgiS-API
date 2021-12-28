@@ -145,10 +145,14 @@ func InstructionToJSON(sp []Task) string {
 
 // given t Task
 // and active Task from active tasks list
-func taskConflicts(t Task) bool {
-
-	return true
-}
+// func taskConflicts(tasks []Task) bool {
+// 	for _, task := range tasks {
+// 		for _, id := range getActiveTaskIds(){
+// 			comparableStartTime:=
+// 		}
+// 	}
+// 	return true
+// }
 
 func addTimeIntervals(tasks []Task) []Task {
 	var modified []Task

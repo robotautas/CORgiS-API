@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 func SetHandler(w http.ResponseWriter, r *http.Request) {
@@ -110,17 +112,20 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 // Accepts JSON string from request, starts a process routine
 func StartHandler(w http.ResponseWriter, r *http.Request) {
 	// c := make(chan int)
+	fmt.Printf("%v", r.Body)
 	decoder := json.NewDecoder(r.Body)
-	body := make([]Task, 1)
+	// body := make([]Task, 1)
+	var body []Task
 	err := decoder.Decode(&body)
 	if err != nil {
 		panic(err)
 	}
-	tasks := addTimeIntervals(body)
-	println(tasks)
 	if validateJSONTasks(body) {
-		println("JSON OK.")
-		fmt.Printf("%v", body)
+		tasks := addTimeIntervals(body)
+		color.Set(color.FgCyan)
+		fmt.Printf("\nTimed tasks: %v\n", tasks)
+		color.Unset()
+
 	} else {
 		println("Faulty JSON!")
 	}
