@@ -152,6 +152,16 @@ func taskToJSON(t Task) string {
 	return string(res)
 }
 
+func JSONToTask(s string) Task {
+	var t Task
+	err := json.Unmarshal([]byte(s), &t)
+	if err != nil {
+		message := fmt.Sprintf("Failed to unmarshall: %v", err)
+		log.Output(1, message)
+	}
+	return t
+}
+
 // given t Task
 // and active Task from active tasks list
 // func taskConflicts(tasks []Task) bool {

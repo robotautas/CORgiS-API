@@ -131,6 +131,58 @@ func JSONValueValid(p string, v int) bool {
 	return false
 }
 
+// get slice of active tasks ids, whose time interval overlaps with the given task
+func (t *Task) overlappingTasks() []int {
+	tStart := t.StartTime
+	tFinish := t.FinishTime
+	var ids []int
+	for _, id := range getActiveTaskIds() {
+		idStart, idFinish := getTasksTimeInterval(id)
+		if timeIntervalsOverlap(tStart, tFinish, idStart, idFinish) {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
+// checks if time interval a1 -> a2 overlaps with b1 -> b2
+func timeIntervalsOverlap(a1, a2, b1, b2 time.Time) bool {
+	if a1.Before(b1) && a2.Before(b1) {
+		return false
+	} else if a1.After(b2) && a2.After(b2) {
+		return false
+	}
+	return true
+}
+
+// determines if task's excecution won't affect other active tasks
+// ids are the ids of active tasks, whose time intervals overlap with t
+func (t *Task) isConflictingTask(ids []int) bool {
+	for _, id := range ids {
+		JSONById := readActiveTask(id)
+		comparedTask := JSONToTask(JSONById)
+		for kT, vT := range t.Vxx {
+			for kC, vC := range comparedTask.Vxx {
+				if kT == kC {
+					for _, reqT := range vT {
+						for _, reqC := range vC {
+							if reqT[0] == reqC[0] {
+								if reqT[1] != reqC[1] {
+									color.Set(color.FgYellow)
+									fmt.Printf("Conflict detected: task %d uses %s: %v, which conflicts with requested %s: %v", id, kC, reqC, kT, reqT)
+									color.Unset()
+									return true
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
 func check(err error) {
 	if err != nil {
 		color.Set(color.FgRed)
