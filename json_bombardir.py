@@ -14,8 +14,8 @@ def generate_json():
         task = {}
         task['Vxx'] = {}
         for i in range(randint(1, 2)):
-            Vs = ["V00", "V01", "V02", "V03", 
-            "V04", "V05", "V06", "V07", "V08"]
+            Vs = ["V00"]#, "V01, "V02", "V03", 
+            #"V04", "V05", "V06", "V07", "V08"]
             param = choice(Vs)
             Vs.remove(param)
             task['Vxx'][param] = []

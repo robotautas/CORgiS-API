@@ -92,7 +92,7 @@ func removeActiveTask(id int) {
 func readActiveTask(id int) string {
 	client := pool.Get()
 	defer client.Close()
-	task, err := client.Do("GET", id)
+	task, err := client.Do("JSON.GET", id)
 	if err != nil {
 		panic(err)
 	}

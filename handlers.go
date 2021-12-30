@@ -112,7 +112,7 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 // Accepts JSON string from request, starts a process routine
 func StartHandler(w http.ResponseWriter, r *http.Request) {
 	// c := make(chan int)
-	fmt.Printf("%v", r.Body)
+	// fmt.Printf("%v", r.Body)
 	decoder := json.NewDecoder(r.Body)
 	// body := make([]Task, 1)
 	var body []Task
@@ -122,15 +122,23 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if validateJSONTasks(body) {
 		tasks := addTimeIntervals(body)
-		color.Set(color.FgCyan)
-		fmt.Printf("\nTimed tasks: %v\n", tasks)
-		color.Unset()
+		// color.Set(color.FgCyan)
+		// fmt.Printf("\nTimed tasks: %v\n", tasks)
+		// color.Unset()
 		// just to have some examples
 		for _, task := range tasks {
-			randNum := randInt(100, 999)
-			taskJSON := taskToJSON(task)
-			fmt.Printf("JSON: %s", taskJSON)
-			storeActiveTask(randNum, taskJSON)
+			overlappingTasks := task.overlappingTasks()
+			fmt.Printf("Overlapping list: %v, %T\n", overlappingTasks, overlappingTasks)
+			if task.conflictsWith(overlappingTasks) {
+				color.Set(color.FgHiMagenta)
+				println("CONFLICT!!!")
+				color.Unset()
+			} else {
+				randNum := randInt(100, 999)
+				taskJSON := taskToJSON(task)
+				// fmt.Printf("JSON: %s", taskJSON)
+				storeActiveTask(randNum, taskJSON)
+			}
 		}
 
 		for _, id := range getActiveTaskIds() {

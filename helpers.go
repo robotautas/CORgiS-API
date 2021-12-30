@@ -157,7 +157,7 @@ func timeIntervalsOverlap(a1, a2, b1, b2 time.Time) bool {
 
 // determines if task's excecution won't affect other active tasks
 // ids are the ids of active tasks, whose time intervals overlap with t
-func (t *Task) isConflictingTask(ids []int) bool {
+func (t *Task) conflictsWith(ids []int) bool {
 	for _, id := range ids {
 		JSONById := readActiveTask(id)
 		comparedTask := JSONToTask(JSONById)
