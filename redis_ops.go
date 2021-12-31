@@ -130,8 +130,8 @@ func getTasksTimeInterval(id int) (time.Time, time.Time) {
 	if err != nil {
 		panic(err)
 	}
-	// start, _ := time.Parse(string(s.([]uint8)), "2021-12-28T16:56:13.647044744+02:00")
-	// finish, _ := time.Parse(string(f.([]uint8)), "2021-12-28T16:56:13.647044744+02:00")
+	// ties šita vieta buvo problema, kuomet skundėsi kad interfeisas nil vietoje []uint8
+	// deja atkartoti situacijos nepavyko.
 	startString := string(s.([]uint8))[1 : len(string(s.([]uint8)))-1]
 	finishString := string(f.([]uint8))[1 : len(string(f.([]uint8)))-1]
 	startTime, err := time.Parse(time.RFC3339, startString)

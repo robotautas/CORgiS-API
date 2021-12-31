@@ -85,7 +85,7 @@ func URLParamValid(s string) bool {
 	return false
 }
 
-// validates map made from POST request JSON STRING
+// validates map made from POST request JSON STRING (bussiness logic)
 func validateJSONTasks(t []Task) bool {
 	for _, task := range t {
 		for p, v := range task.Vxx {

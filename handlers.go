@@ -113,51 +113,59 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 func StartHandler(w http.ResponseWriter, r *http.Request) {
 	// c := make(chan int)
 	// fmt.Printf("%v", r.Body)
+
 	decoder := json.NewDecoder(r.Body)
-	// body := make([]Task, 1)
 	var body []Task
 	err := decoder.Decode(&body)
 	if err != nil {
 		panic(err)
 	}
+
+	// validate business logic
 	if validateJSONTasks(body) {
+		//add timestamps
 		tasks := addTimeIntervals(body)
-		// color.Set(color.FgCyan)
-		// fmt.Printf("\nTimed tasks: %v\n", tasks)
-		// color.Unset()
-		// just to have some examples
 		for _, task := range tasks {
+			//debug - atspausdina pakkankamai info, kad galima atsekti, ar nedaromos klaidos
+			color.Set(color.FgCyan)
+			for k, v := range task.Vxx {
+				fmt.Printf("%v: %v\n", k, v)
+			}
+			fmt.Printf("Start : %v\n", task.StartTime)
+			fmt.Printf("Start : %v\n", task.FinishTime)
+			color.Unset()
+			fmt.Printf("ACTIVE IDS: %v\n", getActiveTaskIds())
+			//end debug
 			overlappingTasks := task.overlappingTasks()
 			fmt.Printf("Overlapping list: %v, %T\n", overlappingTasks, overlappingTasks)
-			if task.conflictsWith(overlappingTasks) {
-				color.Set(color.FgHiMagenta)
-				println("CONFLICT!!!")
-				color.Unset()
-			} else {
+
+			if !task.conflictsWith(overlappingTasks) {
 				randNum := randInt(100, 999)
 				taskJSON := taskToJSON(task)
-				// fmt.Printf("JSON: %s", taskJSON)
 				storeActiveTask(randNum, taskJSON)
+				cToString := "Ačiū"
+				w.Write([]byte(cToString))
 			}
-		}
 
-		for _, id := range getActiveTaskIds() {
-			comparableStartTime, comparableFinishTime := getTasksTimeInterval(id)
-			color.Set(color.BgBlue)
-			fmt.Printf("ID: %v, s: %v, f: %v\n", id, comparableStartTime, comparableFinishTime)
-			color.Unset()
-		}
+			//debug
+			for _, id := range getActiveTaskIds() {
+				comparableStartTime, comparableFinishTime := getTasksTimeInterval(id)
+				color.Set(color.BgBlue)
+				fmt.Printf("ID: %v, s: %v, f: %v\n", id, comparableStartTime, comparableFinishTime)
+				color.Unset()
+			}
+			//end debug
 
-	} else {
-		println("Faulty JSON!")
+			// } else {
+			// 	println("Faulty JSON!")
+			// }
+
+			// go process(c, body)
+
+			// cToString := strconv.Itoa(<-c)
+
+		}
 	}
-
-	// go process(c, body)
-
-	// cToString := strconv.Itoa(<-c)
-	cToString := "Ačiū"
-	w.Write([]byte(cToString))
-
 }
 
 func StopHandler(w http.ResponseWriter, r *http.Request) {
