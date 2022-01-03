@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"regexp"
 	"runtime"
+	"sync"
 	"time"
 
 	"go.bug.st/serial.v1"
 )
 
-var ids []int
+var mutex sync.Mutex
+var instructionIds []int
 
 type changes [][2]int
 

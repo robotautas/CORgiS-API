@@ -54,51 +54,101 @@ func getSerialNumbers(path string) []string {
 	return lines
 }
 
-// excecutes instructions from JSON
+// excecutes instruction represented as []Task
+func excecuteInstruction(c chan int, tasks []Task) {
+	// unique instruction id created and stored to package level list
+	var instructionId int
 
-// KAIP sustabdyti procesa:
-// 1. reikia kaupti aktyvius subprocesus kintamajame arba redis
-// 2. reikia identifikuoti, kelinta bita pakeicia komanda
-// 3. procesui sustojus iteruoti per aktyvius (sub)procesus (isskyrus lokalu)
-//    ir tikrinti, ar dar kur nors naudojamas lokalaus proceso pakeitimas
-// 4. jeigu kazkur dar naudojamas pakeitimas, palikti kaip yra
-//    jeigu ne, atstatyti i default(?)
-// REIKES:
-// 5. visos logikos binary to dec.
-// 6. instrukcijos kaip tipo(struct)
-//    ir visos tikrinimo logikos
-// KAIP PADARYTI, KAD PROCESO SUSTABDYMAS NESIPYKTU SU PAVIENIAIS NUSTATYMAIS
-func process(c chan int, r []Task) {
-	// // unique active instruction id created
-	// var id int
-	// for {
-	// 	random := randInt(1000, 9999)
-	// 	if !idInRedisArray("activeTaskIds", random) {
-	// 		id = random
-	// 		break
-	// 	}
-	// }
+	activeInstructionsLimit := 1000
+	activeTasksLimit:= 3000
 
-	// c <- id
-	// // iterating through JSON converted to native
-	// for _, subprocess := range r {
-	// 	commands := subprocess["commands"]
-	// 	for param, value := range commands.(map[string]interface{}) {
-	// 		//here the commands are sent to arduino
-	// 		value = int(value.(float64))
-	// 		command := fmt.Sprintf("<SET_%v=%v;>", param, value)
-	// 		println(command)
-	// 		// arduino.ResetInputBuffer()
-	// 		_, err := arduino.Write([]byte(command))
-	// 		check(err)
-	// 	}
-	// 	// handle sleep between instructions
-	// 	sleep := int(subprocess["sleep"].(float64))
-	// 	fmt.Printf("sleeping for %vs\n", sleep)
-	// 	for i := 0; i < sleep; i++ {
-	// 		time.Sleep(1 * time.Second)
-	// 	}
-	// }
+	if len(instructionIds) > activeInstructionsLimit {
+		log.Output(1, fmt.Sprintf("%d active instructions limit exceeded, abandoning instruction.", activeInstructionsLimit))
+		return
+	}
+
+	mutex.Lock()
+	for {
+		random := randInt(1000, 9999)
+		if !intInSlice(instructionIds, random) {
+			instructionId = random
+			instructionIds = append(instructionIds, instructionId)
+			break
+		}
+	}
+	mutex.Unlock()
+
+	// register and excecute tasks one by one
+	for _, task := range tasks {
+		var taskId int
+		
+		if len(getActiveTaskIds()) > activeTasksLimit {
+			log.Output(1, fmt.Sprintf("%d active tasks limit exceeded, abandoning instruction.", activeInstructionsLimit))
+			return
+		}
+		
+		for {
+			random := randInt(1000, 9999)
+			if !idInRedisArray("activeTaskIds", random) {
+				taskJSON := taskToJSON(task)
+				storeActiveTask(random, taskJSON)
+				break
+			}
+		}
+
+		currentSettings := outputToMap(singleOutputRead())
+		
+		for k, v := range task.Vxx{
+			currentSetting := int(currentSettings[k].(float64))
+			changedSetting := vxxRequirementsToDec(currentSetting, v)
+			command := fmt.Sprintf("<SET_%v=%v;>", k, changedSetting)
+			_, err := arduino.Write([]byte(command))
+			check(err)
+		}
+
+		for k, v:= range task.Txx{
+			command := fmt.Sprintf("<SET_%v=%v;>", k, v)
+			_, err := arduino.Write([]byte(command))
+			check(err)
+		}
+
+		pumpCommand :=
+
+
+	}
+	
+
+
+
+
+
+
+	
+
+
+	c <- id
+	for _, task := range tasks {
+		
+		
+		
+		
+		// commands := subprocess["commands"]
+		// for param, value := range commands.(map[string]interface{}) {
+		// 	//here the commands are sent to arduino
+		// 	value = int(value.(float64))
+		// 	command := fmt.Sprintf("<SET_%v=%v;>", param, value)
+		// 	println(command)
+		// 	// arduino.ResetInputBuffer()
+		// 	_, err := arduino.Write([]byte(command))
+		// 	check(err)
+		}
+		// handle sleep between instructions
+		sleep := int(subprocess["sleep"].(float64))
+		fmt.Printf("sleeping for %vs\n", sleep)
+		for i := 0; i < sleep; i++ {
+			time.Sleep(1 * time.Second)
+		}
+	}
 	log.Output(1, fmt.Sprintf("Process %d completed!", c))
 }
 

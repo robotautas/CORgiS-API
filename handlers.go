@@ -140,6 +140,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("Overlapping list: %v, %T\n", overlappingTasks, overlappingTasks)
 
 			if !task.conflictsWith(overlappingTasks) {
+				// cia startuojam instrukcija kaip rutina
 				randNum := randInt(100, 999)
 				taskJSON := taskToJSON(task)
 				storeActiveTask(randNum, taskJSON)

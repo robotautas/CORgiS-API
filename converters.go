@@ -105,20 +105,20 @@ func binArrayToDec(a []int) int {
 
 // given the
 // current state of one of Vxx's represented by decimal value and
-// what conditions have to be fulfilled for (sub)process to run -
-// represented by value of type changes
+// what conditions have to be fulfilled for task to run,
+// represented by value of type [][2]int
 // returns a dec Vxx number to be sent to the arduino device
-func VxxChangeToDec(presentVal int, c changes) int {
-	presentValToBin := decToBinArray(presentVal)
-	newBinArr := append([]int(nil), presentValToBin...)
+func vxxRequirementsToDec(currentVal int, c [][2]int) int {
+	currentValToBin := decToBinArray(currentVal)
+	newBinArr := append([]int(nil), currentValToBin...)
 	for _, change := range c {
-		if presentValToBin[change[0]] != change[1] {
+		if currentValToBin[change[0]] != change[1] {
 			newBinArr[change[0]] = change[1]
 		}
 	}
 	// some debugging prints, to be erased in future
 	fmt.Printf("%v\n", c)
-	fmt.Printf("%v\n", presentValToBin)
+	fmt.Printf("%v\n", currentValToBin)
 	fmt.Printf("%v\n", newBinArr)
 	fmt.Printf("%v\n", binArrayToDec(newBinArr))
 	return binArrayToDec(newBinArr)
