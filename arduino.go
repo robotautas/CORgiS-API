@@ -60,7 +60,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 	var instructionId int
 
 	activeInstructionsLimit := 1000
-	activeTasksLimit:= 3000
+	activeTasksLimit := 3000
 
 	if len(instructionIds) > activeInstructionsLimit {
 		log.Output(1, fmt.Sprintf("%d active instructions limit exceeded, abandoning instruction.", activeInstructionsLimit))
@@ -77,16 +77,17 @@ func excecuteInstruction(c chan int, tasks []Task) {
 		}
 	}
 	mutex.Unlock()
+	c <- instructionId
 
 	// register and excecute tasks one by one
 	for _, task := range tasks {
 		var taskId int
-		
+
 		if len(getActiveTaskIds()) > activeTasksLimit {
 			log.Output(1, fmt.Sprintf("%d active tasks limit exceeded, abandoning instruction.", activeInstructionsLimit))
 			return
 		}
-		
+
 		for {
 			random := randInt(1000, 9999)
 			if !idInRedisArray("activeTaskIds", random) {
@@ -97,59 +98,37 @@ func excecuteInstruction(c chan int, tasks []Task) {
 		}
 
 		currentSettings := outputToMap(singleOutputRead())
-		
-		for k, v := range task.Vxx{
+
+		for k, v := range task.Vxx {
 			currentSetting := int(currentSettings[k].(float64))
 			changedSetting := vxxRequirementsToDec(currentSetting, v)
 			command := fmt.Sprintf("<SET_%v=%v;>", k, changedSetting)
+			// arduino.ResetInputBuffer()
 			_, err := arduino.Write([]byte(command))
 			check(err)
 		}
 
-		for k, v:= range task.Txx{
+		for k, v := range task.Txx {
 			command := fmt.Sprintf("<SET_%v=%v;>", k, v)
 			_, err := arduino.Write([]byte(command))
 			check(err)
 		}
 
-		pumpCommand :=
-
-
-	}
-	
-
-
-
-
-
-
-	
-
-
-	c <- id
-	for _, task := range tasks {
-		
-		
-		
-		
-		// commands := subprocess["commands"]
-		// for param, value := range commands.(map[string]interface{}) {
-		// 	//here the commands are sent to arduino
-		// 	value = int(value.(float64))
-		// 	command := fmt.Sprintf("<SET_%v=%v;>", param, value)
-		// 	println(command)
-		// 	// arduino.ResetInputBuffer()
-		// 	_, err := arduino.Write([]byte(command))
-		// 	check(err)
+		if task.Pump == "ON" {
+			command := "<PUMP_ON;>"
+			_, err := arduino.Write([]byte(command))
+			check(err)
+		} else if task.Pump == "OFF" {
+			command := "<PUMP_OFF;>"
+			_, err := arduino.Write([]byte(command))
+			check(err)
 		}
-		// handle sleep between instructions
-		sleep := int(subprocess["sleep"].(float64))
-		fmt.Printf("sleeping for %vs\n", sleep)
-		for i := 0; i < sleep; i++ {
+
+		for i := 0; i < task.Sleep; i++ {
 			time.Sleep(1 * time.Second)
 		}
 	}
-	log.Output(1, fmt.Sprintf("Process %d completed!", c))
+	log.Output(1, fmt.Sprintf("Instruction %d done!", c))
 }
 
 // reads serial output untill it matches validation check

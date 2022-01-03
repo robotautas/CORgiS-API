@@ -16,6 +16,7 @@ import (
 
 var mutex sync.Mutex
 var instructionIds []int
+var killInstructionIds []int
 
 type changes [][2]int
 

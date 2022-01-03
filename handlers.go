@@ -176,9 +176,9 @@ func StopHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	ids = append(ids, idInt)
+	killInstructionIds = append(killInstructionIds, idInt)
 	addToKillList(idInt)
-	fmt.Printf("%v\n", ids)
+	fmt.Printf("%v\n", killInstructionIds)
 }
 
 func RootHandler(w http.ResponseWriter, r *http.Request) {
