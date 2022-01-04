@@ -136,16 +136,14 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 			color.Unset()
 			fmt.Printf("ACTIVE IDS: %v\n", getActiveTaskIds())
 			//end debug
+
+			// making sure that all tasks in the instruction won't affect other running tasks
 			overlappingTasks := task.overlappingTasks()
 			fmt.Printf("Overlapping list: %v, %T\n", overlappingTasks, overlappingTasks)
-
-			if !task.conflictsWith(overlappingTasks) {
-				// cia startuojam instrukcija kaip rutina
-				randNum := randInt(100, 999)
-				taskJSON := taskToJSON(task)
-				storeActiveTask(randNum, taskJSON)
-				cToString := "Ačiū"
-				w.Write([]byte(cToString))
+			if task.conflictsWith(overlappingTasks) {
+				response := "Conflicting instruction!"
+				w.Write([]byte(response))
+				return
 			}
 
 			//debug
@@ -156,16 +154,11 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 				color.Unset()
 			}
 			//end debug
-
-			// } else {
-			// 	println("Faulty JSON!")
-			// }
-
-			// go process(c, body)
-
-			// cToString := strconv.Itoa(<-c)
-
 		}
+		c := make(chan int)
+		go excecuteInstruction(c, tasks)
+		cToString := strconv.Itoa(<-c)
+		w.Write([]byte(cToString))
 	}
 }
 

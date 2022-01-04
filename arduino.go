@@ -81,7 +81,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 
 	// register and excecute tasks one by one
 	for _, task := range tasks {
-		var taskId int
+		// var taskId int
 
 		if len(getActiveTaskIds()) > activeTasksLimit {
 			log.Output(1, fmt.Sprintf("%d active tasks limit exceeded, abandoning instruction.", activeInstructionsLimit))
@@ -100,7 +100,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 		currentSettings := outputToMap(singleOutputRead())
 
 		for k, v := range task.Vxx {
-			currentSetting := int(currentSettings[k].(float64))
+			currentSetting := int(currentSettings[k].(int64))
 			changedSetting := vxxRequirementsToDec(currentSetting, v)
 			command := fmt.Sprintf("<SET_%v=%v;>", k, changedSetting)
 			// arduino.ResetInputBuffer()
