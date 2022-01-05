@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"math"
 	"strconv"
@@ -87,7 +86,7 @@ func decToBinArray(d int) []int {
 // returns decimal value of given array, containing ones and zeros
 func binArrayToDec(a []int) int {
 	if len(a) < 8 {
-		log.Panic("Must be array of length 8!")
+		printError("Array of invalid length provided - %v. Must be of length 8!\n", a)
 	}
 	num := 0
 	for idx, byte := range a {
@@ -117,10 +116,10 @@ func vxxRequirementsToDec(currentVal int, c [][2]int) int {
 		}
 	}
 	// some debugging prints, to be erased in future
-	fmt.Printf("%v\n", c)
-	fmt.Printf("%v\n", currentValToBin)
-	fmt.Printf("%v\n", newBinArr)
-	fmt.Printf("%v\n", binArrayToDec(newBinArr))
+	printDebug("%v\n", c)
+	printDebug("%v\n", currentValToBin)
+	printDebug("%v\n", newBinArr)
+	printDebug("%v\n", binArrayToDec(newBinArr))
 	return binArrayToDec(newBinArr)
 }
 
@@ -128,8 +127,7 @@ func JSONToInstruction(s string) []Task {
 	var Structure []Task
 	err := json.Unmarshal([]byte(s), &Structure)
 	if err != nil {
-		message := fmt.Sprintf("Invalid JSON: %v", err)
-		log.Output(1, message)
+		printError("Failed to unmarshall: %v\n", err)
 	}
 	return Structure
 }
@@ -137,8 +135,7 @@ func JSONToInstruction(s string) []Task {
 func InstructionToJSON(sp []Task) string {
 	res, err := json.Marshal(sp)
 	if err != nil {
-		message := fmt.Sprintf("Invalid JSON: %v", err)
-		log.Output(1, message)
+		printError("Failed to marshall: %v\n", err)
 	}
 	return string(res)
 }
@@ -146,8 +143,7 @@ func InstructionToJSON(sp []Task) string {
 func taskToJSON(t Task) string {
 	res, err := json.Marshal(t)
 	if err != nil {
-		message := fmt.Sprintf("Invalid JSON: %v", err)
-		log.Output(1, message)
+		printError("Failed to marshall: %v\n", err)
 	}
 	return string(res)
 }
@@ -156,8 +152,7 @@ func JSONToTask(s string) Task {
 	var t Task
 	err := json.Unmarshal([]byte(s), &t)
 	if err != nil {
-		message := fmt.Sprintf("Failed to unmarshall: %v", err)
-		log.Output(1, message)
+		printError("Failed to unmarshall: %v\n", err)
 	}
 	return t
 }

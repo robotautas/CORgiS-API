@@ -21,12 +21,12 @@ func SetHandler(w http.ResponseWriter, r *http.Request) {
 	// make sure, that param & value combination is valid
 	if !URLParamValid(param) {
 		w.Write([]byte("error: incorrect param!"))
-		log.Output(1, "Invalid request!")
+		printWarning("Invalid request! Parameter %v incorrect!", param)
 		return
 	}
 	if !URLValueValid(param, value) {
 		w.Write([]byte("error: incorrect value!"))
-		log.Output(1, "Invalid request!")
+		printWarning("Invalid request! Value %v incorrect!", value)
 		return
 	}
 
@@ -149,7 +149,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 			//debug
 			for _, id := range getActiveTaskIds() {
 				comparableStartTime, comparableFinishTime := getTasksTimeInterval(id)
-				color.Set(color.BgBlue)
+				color.Set(color.FgHiMagenta)
 				fmt.Printf("ID: %v, s: %v, f: %v\n", id, comparableStartTime, comparableFinishTime)
 				color.Unset()
 			}

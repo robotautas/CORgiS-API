@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -27,7 +26,7 @@ func findArduinoPort() string {
 					}
 				}
 			}
-			fmt.Println("\nArduino device not found. Check if connected!")
+			printError("Arduino device not found. Check if connected!")
 			time.Sleep(time.Second * 1)
 		}
 	}
@@ -50,7 +49,7 @@ func getSerialNumbers(path string) []string {
 		}
 		lines = append(lines, sn)
 	}
-	fmt.Printf("\nReading serial numbers: %v\n", lines)
+	printInfo("Reading serial numbers: %v\n", lines)
 	return lines
 }
 
@@ -63,7 +62,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 	activeTasksLimit := 3000
 
 	if len(instructionIds) > activeInstructionsLimit {
-		log.Output(1, fmt.Sprintf("%d active instructions limit exceeded, abandoning instruction.", activeInstructionsLimit))
+		printWarning("%d active instructions limit exceeded, abandoning instruction.", activeInstructionsLimit)
 		return
 	}
 
@@ -84,7 +83,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 		// var taskId int
 
 		if len(getActiveTaskIds()) > activeTasksLimit {
-			log.Output(1, fmt.Sprintf("%d active tasks limit exceeded, abandoning instruction.", activeInstructionsLimit))
+			printWarning("%d active tasks limit exceeded, abandoning instruction.", activeInstructionsLimit)
 			return
 		}
 
@@ -110,6 +109,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 
 		for k, v := range task.Txx {
 			command := fmt.Sprintf("<SET_%v=%v;>", k, v)
+			printDebug("TEMP COMMAND: %s\n", command)
 			_, err := arduino.Write([]byte(command))
 			check(err)
 		}
@@ -128,7 +128,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 			time.Sleep(1 * time.Second)
 		}
 	}
-	log.Output(1, fmt.Sprintf("Instruction %d done!", c))
+	printInfo("Instruction %d done!\n", c)
 }
 
 // reads serial output untill it matches validation check

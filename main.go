@@ -78,7 +78,7 @@ func DB_routine() {
 			output := outputToMap(output)
 			jsonString, err := json.Marshal(output)
 			check(err)
-			log.Output(1, fmt.Sprintf("%v", len(jsonString)))
+			log.Output(1, fmt.Sprintf("%v", string(jsonString)))
 			writeLineToDatabase(con, output)
 		} else {
 			log.Output(1, "Invalid output!")
