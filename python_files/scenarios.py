@@ -15,7 +15,7 @@ json_2 = '''
 [
     {
         "Vxx": {"V08": [[7, 0]]},
-        "Txx": {"T01": 200},
+        "Txx": {"T02": 200},
         "PUMP": "OFF",
         "Sleep": 4
     }
@@ -24,7 +24,7 @@ json_3 = '''
 [
     {
         "Vxx": {"V08": [[0, 1]]},
-        "Txx": {"T05": 300},
+        "Txx": {"T03": 300},
         "PUMP": "OFF",
         "Sleep": 4
     }
@@ -32,7 +32,7 @@ json_3 = '''
 json_4 = '''
 [
     {
-        "Txx": {"T05": 300},
+        "Txx": {"T04": 400, "T05": 400, "T06": 400, "T07": 400},
         "PUMP": "ON",
         "Sleep": 4
     }
@@ -48,7 +48,9 @@ def send(instruction):
 
 # Proceduuuura :)
 
-send(instructions[3])
+send(instructions[0])
+sleep(3)
+send(instructions[1])
 sleep(3)
 send(instructions[2])
 sleep(3)

@@ -1,5 +1,8 @@
 import os
 
+os.chdir("../")
+print(os.listdir())
+
 counter = 0
 for file in os.listdir():
     if file.endswith('go'):
