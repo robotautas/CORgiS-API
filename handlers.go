@@ -3,13 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/fatih/color"
 )
 
 func SetHandler(w http.ResponseWriter, r *http.Request) {
@@ -36,14 +33,14 @@ func SetHandler(w http.ResponseWriter, r *http.Request) {
 		command = "<" + param + ";>"
 		_, err := arduino.Write([]byte(command))
 		check(err)
-		log.Output(1, fmt.Sprintf("Command sent: %v", command))
+		printInfo("Command sent: %v", command)
 	} else {
 		command = "<SET_" + param + "=" + value + ";>"
 		_, err := arduino.Write([]byte(command))
 		if err != nil {
 			w.Write([]byte("error: could not send a command to device, check if connected!"))
 		}
-		log.Output(1, fmt.Sprintf("Command sent: %v", command))
+		printInfo("Command sent: %v", command)
 	}
 
 	time.Sleep(30 * time.Millisecond)
@@ -58,11 +55,10 @@ func SetHandler(w http.ResponseWriter, r *http.Request) {
 				jsonString, err := json.Marshal(answer)
 				check(err)
 				w.Write([]byte(jsonString))
-				log.Output(1, "Valid response received.")
+				printInfo("Valid response received.")
 				break
 			} else {
-				logout := fmt.Sprintf("Response FAILED, %v != %v! Reading again..", answer[param], value)
-				log.Output(1, logout)
+				printError("Response FAILED, %v != %v! Reading again..", answer[param], value)
 				time.Sleep(20 * time.Millisecond)
 			}
 		}
@@ -73,17 +69,16 @@ func SetHandler(w http.ResponseWriter, r *http.Request) {
 				jsonString, err := json.Marshal(answer)
 				check(err)
 				w.Write([]byte(jsonString))
-				log.Output(1, "Valid response received.")
+				printInfo("Valid response received.")
 				break
 			} else if param == "PUMP_OFF" && answer["PUMP"] == int64(0) {
 				jsonString, err := json.Marshal(answer)
 				check(err)
 				w.Write([]byte(jsonString))
-				log.Output(1, "Valid response received.")
+				printInfo("Valid response received.")
 				break
 			} else {
-				logout := fmt.Sprintf("Response FAILED! Param = '%v', pump value = '%v'", param, answer["PUMP"])
-				log.Output(1, logout)
+				printError("Response FAILED! Param = '%v', pump value = '%v'", param, answer["PUMP"])
 				time.Sleep(80 * time.Millisecond)
 			}
 		}
@@ -93,12 +88,12 @@ func SetHandler(w http.ResponseWriter, r *http.Request) {
 		jsonString, err := json.Marshal(answer)
 		check(err)
 		w.Write([]byte(jsonString))
-		log.Output(1, "Valid response received.")
+		printInfo("Valid response received.")
 	} else {
 		w.Write([]byte("error: something unexpected happened"))
 	}
 	finish := time.Since(start)
-	log.Output(1, fmt.Sprintf("Response took %v", finish))
+	printInfo("Response took %v", finish)
 }
 
 func GetHandler(w http.ResponseWriter, r *http.Request) {
@@ -106,7 +101,7 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 	jsonString, err := json.Marshal(answer)
 	check(err)
 	w.Write([]byte(jsonString))
-	log.Output(1, "Valid response received.")
+	printInfo("Valid response received.")
 }
 
 // Accepts JSON string from request, starts a process routine
@@ -127,19 +122,17 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 		tasks := addTimeIntervals(body)
 		for _, task := range tasks {
 			//debug - atspausdina pakkankamai info, kad galima atsekti, ar nedaromos klaidos
-			color.Set(color.FgCyan)
 			for k, v := range task.Vxx {
-				fmt.Printf("%v: %v\n", k, v)
+				printDebug("%v: %v", k, v)
 			}
-			fmt.Printf("Start : %v\n", task.StartTime)
-			fmt.Printf("Start : %v\n", task.FinishTime)
-			color.Unset()
-			fmt.Printf("ACTIVE IDS: %v\n", getActiveTaskIds())
+			printDebug("Start : %v", task.StartTime)
+			printDebug("Start : %v", task.FinishTime)
+			printDebug("ACTIVE IDS: %v", getActiveTaskIds())
 			//end debug
 
 			// making sure that all tasks in the instruction won't affect other running tasks
 			overlappingTasks := task.overlappingTasks()
-			fmt.Printf("Overlapping list: %v, %T\n", overlappingTasks, overlappingTasks)
+			printDebug("Overlapping list: %v, %T\n", overlappingTasks, overlappingTasks)
 			if task.conflictsWith(overlappingTasks) {
 				response := "Conflicting instruction!"
 				w.Write([]byte(response))
@@ -149,9 +142,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 			//debug
 			for _, id := range getActiveTaskIds() {
 				comparableStartTime, comparableFinishTime := getTasksTimeInterval(id)
-				color.Set(color.FgHiMagenta)
-				fmt.Printf("ID: %v, s: %v, f: %v\n", id, comparableStartTime, comparableFinishTime)
-				color.Unset()
+				printInfo("ID: %v, s: %v, f: %v\n", id, comparableStartTime, comparableFinishTime)
 			}
 			//end debug
 		}

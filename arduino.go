@@ -69,6 +69,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 	mutex.Lock()
 	for {
 		random := randInt(1000, 9999)
+		// printDebug("INSTRUCTION ID DEBUG %v", random)
 		if !intInSlice(instructionIds, random) {
 			instructionId = random
 			instructionIds = append(instructionIds, instructionId)
@@ -109,7 +110,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 
 		for k, v := range task.Txx {
 			command := fmt.Sprintf("<SET_%v=%v;>", k, v)
-			printDebug("TEMP COMMAND: %s\n", command)
+			printDebug("TEMP COMMAND: %s", command)
 			_, err := arduino.Write([]byte(command))
 			check(err)
 		}
@@ -128,7 +129,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 			time.Sleep(1 * time.Second)
 		}
 	}
-	printInfo("Instruction %d done!\n", c)
+	printInfo("Instruction %v done!", instructionId)
 }
 
 // reads serial output untill it matches validation check

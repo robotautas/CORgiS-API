@@ -18,8 +18,6 @@ var mutex sync.Mutex
 var instructionIds []int
 var killInstructionIds []int
 
-type changes [][2]int
-
 var mode = &serial.Mode{
 	Parity:   serial.EvenParity,
 	BaudRate: 115200,
@@ -53,7 +51,7 @@ func DB_routine() {
 	con := getDBConnection()
 	dur, ver, err := con.Ping()
 	check(err)
-	log.Printf("Connected to database! %v, %s", dur, ver)
+	printInfo("Connected to database! %v, %s", dur, ver)
 
 	if !databaseDataExists(con) {
 		createDatabaseData1h(con)
@@ -65,7 +63,7 @@ func DB_routine() {
 		_, err := arduino.Write([]byte("<GET_ALL;>"))
 		// If err, reinitialize connection to device
 		if err != nil {
-			fmt.Printf("CONNECTION ERROR! %v", err)
+			printError("CONNECTION ERROR! %v", err)
 			arduino, err = serial.Open(findArduinoPort(), mode)
 			check(err)
 		}
