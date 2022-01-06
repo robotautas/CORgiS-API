@@ -142,7 +142,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 			//debug
 			for _, id := range getActiveTaskIds() {
 				comparableStartTime, comparableFinishTime := getTasksTimeInterval(id)
-				printInfo("ID: %v, s: %v, f: %v\n", id, comparableStartTime, comparableFinishTime)
+				printInfo("ID: %v, s: %v, f: %v", id, comparableStartTime, comparableFinishTime)
 			}
 			//end debug
 		}

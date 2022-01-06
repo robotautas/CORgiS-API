@@ -49,7 +49,7 @@ func getSerialNumbers(path string) []string {
 		}
 		lines = append(lines, sn)
 	}
-	printInfo("Reading serial numbers: %v\n", lines)
+	printInfo("Reading serial numbers: %v", lines)
 	return lines
 }
 
@@ -106,6 +106,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 			// arduino.ResetInputBuffer()
 			_, err := arduino.Write([]byte(command))
 			check(err)
+			time.Sleep(time.Millisecond * 20)
 		}
 
 		for k, v := range task.Txx {
@@ -113,6 +114,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 			printDebug("TEMP COMMAND: %s", command)
 			_, err := arduino.Write([]byte(command))
 			check(err)
+			time.Sleep(time.Millisecond * 20)
 		}
 
 		if task.Pump == "ON" {
