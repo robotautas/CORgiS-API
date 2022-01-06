@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -48,5 +49,52 @@ func printInfo(format string, a ...interface{}) {
 		blue(timestamp()+" "+format+"\n", a...)
 	} else {
 		blue(timestamp() + " " + format + "\n")
+	}
+}
+
+var white = color.New(color.FgWhite).PrintfFunc()
+
+func printWhite(format string, a ...interface{}) {
+	if a != nil {
+		white(timestamp()+" "+format+"\n", a...)
+	} else {
+		white(timestamp() + " " + format + "\n")
+	}
+}
+
+// gets truncated versions of board settings output
+// 1 - Vxx
+// 2 - Vxx, Txx
+// 3 - Vxx, Txx, Pump
+// 5 (or any other int) - All vals.
+func truncateOutput(m *map[string]interface{}, level int) map[string]interface{} {
+	switch level {
+	case 1:
+		for k := range *m {
+			if strings.HasPrefix(k, "P") ||
+				strings.HasPrefix(k, "T") ||
+				strings.HasPrefix(k, "S") {
+				delete(*m, k)
+			}
+		}
+		return *m
+	case 2:
+		for k := range *m {
+			if strings.HasPrefix(k, "P") ||
+				strings.HasPrefix(k, "S") {
+				delete(*m, k)
+			}
+		}
+		return *m
+	case 3:
+		for k := range *m {
+			if (strings.HasPrefix(k, "P") && !strings.HasPrefix(k, "PU")) ||
+				strings.HasPrefix(k, "S") {
+				delete(*m, k)
+			}
+		}
+		return *m
+	default:
+		return *m
 	}
 }

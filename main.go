@@ -2,9 +2,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
 	"regexp"
 	"runtime"
@@ -74,12 +71,14 @@ func DB_routine() {
 
 		if outputIsValid(output, re) {
 			output := outputToMap(output)
-			jsonString, err := json.Marshal(output)
-			check(err)
-			log.Output(1, fmt.Sprintf("%v", string(jsonString)))
 			writeLineToDatabase(con, output)
+			// jsonString, err := json.Marshal(output)
+			// check(err)
+			truncateOutput(&output, 3)
+			printWhite("%v", output)
+
 		} else {
-			log.Output(1, "Invalid output!")
+			printWarning("Invalid output!")
 		}
 		time.Sleep(1000 * time.Millisecond)
 	}
