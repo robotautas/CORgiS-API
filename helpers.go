@@ -168,9 +168,7 @@ func (t *Task) conflictsWith(ids []int) bool {
 						for _, reqC := range vC {
 							if reqT[0] == reqC[0] {
 								if reqT[1] != reqC[1] {
-									color.Set(color.FgYellow)
-									fmt.Printf("Conflict detected: task %d uses %s: %v, which conflicts with requested %s: %v", id, kC, reqC, kT, reqT)
-									color.Unset()
+									printWarning("Conflict detected: task %d uses %s: %v, which conflicts with requested %s: %v", id, kC, reqC, kT, reqT)
 									return true
 								}
 							}

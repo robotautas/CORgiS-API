@@ -134,6 +134,38 @@ func excecuteInstruction(c chan int, tasks []Task) {
 	printInfo("Instruction %v done!", instructionId)
 }
 
+// NEXT TODO!!!
+// func (t *Task) Stop() {
+// 	for _, id := range t.overlappingTasks(){
+// 		JSONById := readActiveTask(id)
+// 		overlappingTask := JSONToTask(JSONById)
+// 		for k, v := range overlappingTask.Vxx{
+// 			if k
+// 		}
+// 	}
+// }
+
+// changes task's values to system defaults
+func (t *Task) resetToDefaults(defaults *Task) {
+	// k like "V00", v like {{2, 0}, {3, 1}}
+	for k, v := range t.Vxx {
+		// requirement like {3, 1}
+		var newValue [][2]int
+		for _, requirement := range v {
+			// if requirement differs from default requirement, change it to default
+			if requirement != defaults.Vxx[k][requirement[0]] {
+				newValue = append(newValue, defaults.Vxx[k][requirement[0]])
+			}
+			fmt.Printf("New value: %v\n", newValue)
+		}
+		t.Vxx[k] = newValue
+	}
+	// TODO: temperatures??? need business logic.
+	if t.Pump != defaults.Pump {
+		t.Pump = defaults.Pump
+	}
+}
+
 // reads serial output untill it matches validation check
 func singleOutputRead() string {
 	for {
