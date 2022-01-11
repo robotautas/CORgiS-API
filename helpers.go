@@ -203,6 +203,16 @@ func intInSlice(s []int, e int) bool {
 	return false
 }
 
+// remove requirement like {3, 0} from requirements array, like {{1, 1}, {3, 0}}
+func removeRequirement(reqs [][2]int, req [2]int) [][2]int {
+	for idx, item := range reqs {
+		if item == req {
+			return append(reqs[:idx], reqs[idx+1:]...)
+		}
+	}
+	return nil
+}
+
 func APIRules() string {
 	text := fmt.Sprintf(`This is an API part of middleware between graphitizer microcontroller and user interface.
 API sends commands to microcontroller through HTTP GET or POST requests.

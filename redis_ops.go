@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
 )
+
+// CONSIDER REFACTORING USING PACKAGE LEVEL VARIABLES WITH MUTEXES INSTEAD
 
 var pool = newPool()
 
@@ -144,6 +147,15 @@ func getTasksTimeInterval(id int) (time.Time, time.Time) {
 	}
 	return startTime, finishTime
 
+}
+
+func removeIdFromRedisArr(redisArr string, id int) {
+	client := pool.Get()
+	defer client.Close()
+	_, err := client.Do(fmt.Sprintf("LREM %s -1 %v"), redisArr, id)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func flushRedis() {

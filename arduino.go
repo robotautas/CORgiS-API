@@ -134,16 +134,49 @@ func excecuteInstruction(c chan int, tasks []Task) {
 	printInfo("Instruction %v done!", instructionId)
 }
 
-// NEXT TODO!!!
-// func (t *Task) Stop() {
-// 	for _, id := range t.overlappingTasks(){
-// 		JSONById := readActiveTask(id)
-// 		overlappingTask := JSONToTask(JSONById)
-// 		for k, v := range overlappingTask.Vxx{
-// 			if k
-// 		}
-// 	}
-// }
+// Maybe in future add task id to task struct... :)
+func (t *Task) Stop(taskId int) {
+	// remove task from redis
+	removeActiveTask(taskId)
+	removeIdFromRedisArr("activeTaskIds", taskId)
+	removeFromKillList(taskId)
+	t.resetToDefaults(&defaults)
+
+	currentSettings := outputToMap(singleOutputRead())
+
+	// return to defaults only values that are not in use
+	for _, id := range t.overlappingTasks() {
+		JSONById := readActiveTask(id)
+		comparedTask := JSONToTask(JSONById)
+		for kT, vT := range t.Vxx {
+			// make a copy of current Vxx iteration
+			newVT := make([][2]int, len(t.Vxx[kT]))
+			copy(newVT, t.Vxx[kT])
+			for kC, vC := range comparedTask.Vxx {
+				// like if V00 = V00
+				if kT == kC {
+					// comparing two arrays like {{1, 1}, {5,0}}
+					for _, reqT := range vT {
+						for _, reqC := range vC {
+							// if first num of [2]int slice matches
+							// remove requirement from neutralised task
+							// as it is used elsewhere and cant be excecuted
+							if reqT[0] == reqC[0] {
+								newVT = removeRequirement(newVT, reqT)
+							}
+						}
+					}
+				}
+			}
+			currentSetting := int(currentSettings[kT].(int64))
+			changedSetting := vxxRequirementsToDec(currentSetting, newVT)
+			command := fmt.Sprintf("<SET_%v=%v;>", kT, changedSetting)
+			_, err := arduino.Write([]byte(command))
+			check(err)
+			time.Sleep(time.Millisecond * 20)
+		}
+	}
+}
 
 // changes task's values to system defaults
 func (t *Task) resetToDefaults(defaults *Task) {
