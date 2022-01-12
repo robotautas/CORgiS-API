@@ -125,14 +125,14 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 			for k, v := range task.Vxx {
 				printDebug("%v: %v", k, v)
 			}
-			printDebug("Start : %v", task.StartTime)
-			printDebug("Start : %v", task.FinishTime)
-			printDebug("ACTIVE IDS: %v", getActiveTaskIds())
+			// printDebug("Start : %v", task.StartTime)
+			// printDebug("Start : %v", task.FinishTime)
+			// printDebug("ACTIVE IDS: %v", getActiveTaskIds())
 			//end debug
 
 			// making sure that all tasks in the instruction won't affect other running tasks
 			overlappingTasks := task.overlappingTasks()
-			printDebug("Overlapping list: %v, %T\n", overlappingTasks, overlappingTasks)
+			// printDebug("Overlapping list: %v, %T\n", overlappingTasks, overlappingTasks)
 			if task.conflictsWith(overlappingTasks) {
 				response := "Conflicting instruction!"
 				w.Write([]byte(response))
@@ -140,10 +140,10 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			//debug
-			for _, id := range getActiveTaskIds() {
-				comparableStartTime, comparableFinishTime := getTasksTimeInterval(id)
-				printInfo("ID: %v, s: %v, f: %v", id, comparableStartTime, comparableFinishTime)
-			}
+			// for _, id := range getActiveTaskIds() {
+			// 	comparableStartTime, comparableFinishTime := getTasksTimeInterval(id)
+			// 	printInfo("ID: %v, s: %v, f: %v", id, comparableStartTime, comparableFinishTime)
+			// }
 			//end debug
 		}
 		c := make(chan int)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -152,10 +151,23 @@ func getTasksTimeInterval(id int) (time.Time, time.Time) {
 func removeIdFromRedisArr(redisArr string, id int) {
 	client := pool.Get()
 	defer client.Close()
-	_, err := client.Do(fmt.Sprintf("LREM %s -1 %v"), redisArr, id)
+	_, err := client.Do("LREM", redisArr, 1, id)
 	if err != nil {
 		panic(err)
 	}
+}
+
+//collect all active tasks, exclude requirements that are default, merge into one task
+func getAllRunningTasksNonDefaultRequirements() {
+	var activeTasks []Task
+	for _, id := range getActiveTaskIds() {
+		JSONById := readActiveTask(id)
+		task := JSONToTask(JSONById)
+		activeTasks = append(activeTasks, task)
+	}
+	// for _, t := range activeTasks {
+	// 	printInfo("ATATATATA %v", t)
+	// }
 }
 
 func flushRedis() {

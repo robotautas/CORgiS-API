@@ -77,9 +77,9 @@ func DB_routine() {
 			truncateOutput(&output, 3)
 			printWhite("%v", output)
 
-		} else {
-			printWarning("Invalid output!")
-		}
+		} //else {
+		// 	printWarning("Invalid output!")
+		// }
 		time.Sleep(1000 * time.Millisecond)
 	}
 }
