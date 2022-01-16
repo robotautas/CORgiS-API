@@ -174,6 +174,9 @@ func (t *Task) Stop(taskId int) {
 	activeIds := getActiveTaskIds()
 
 	if len(activeIds) < 1 {
+		printDebug("no active instructions")
+		printDebug("excecuting neutralised task")
+		printError("%v", t)
 		for k, v := range t.Vxx {
 			currentSetting := int(currentSettings[k].(int64))
 			changedSetting := vxxRequirementsToDec(currentSetting, v)

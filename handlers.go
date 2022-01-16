@@ -120,6 +120,53 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 	if validateJSONTasks(body) {
 		//add timestamps
 		tasks := addTimeIntervals(body)
+
+		// check for conflicts
+		for _, task := range tasks {
+			overlappingTasks := task.overlappingTasks()
+			if task.conflictsWith(overlappingTasks) {
+				response := "Conflicting instruction!"
+				w.Write([]byte(response))
+				return
+			}
+		}
+
+		// create instruction id
+		// var instruction Instruction
+		instruction := make(Instruction)
+		var instructionId int
+		mutex.Lock()
+		for {
+			random := randInt(1000, 9999)
+			// printDebug("INSTRUCTION ID DEBUG %v", random)
+			if !intInSlice(instructionIds, random) {
+				instructionId = random
+				// this became redundant, refactor to redis only in future
+				instructionIds = append(instructionIds, instructionId)
+				break
+			}
+		}
+		mutex.Unlock()
+
+		// register in redis
+		var taskIds []int
+
+		for _, task := range tasks {
+
+			for {
+				random := randInt(1000, 9999)
+				if !idInRedisArray("activeTaskIds", random) {
+					taskJSON := taskToJSON(task)
+					storeActiveTask(random, taskJSON)
+					taskIds = append(taskIds, random)
+					break
+				}
+			}
+		}
+
+		instruction[instructionId] = taskIds
+		printError("%v", instruction)
+
 		for _, task := range tasks {
 			//debug - atspausdina pakkankamai info, kad galima atsekti, ar nedaromos klaidos
 			for k, v := range task.Vxx {
@@ -131,13 +178,13 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 			//end debug
 
 			// making sure that all tasks in the instruction won't affect other running tasks
-			overlappingTasks := task.overlappingTasks()
-			// printDebug("Overlapping list: %v, %T\n", overlappingTasks, overlappingTasks)
-			if task.conflictsWith(overlappingTasks) {
-				response := "Conflicting instruction!"
-				w.Write([]byte(response))
-				return
-			}
+			// overlappingTasks := task.overlappingTasks()
+			// // printDebug("Overlapping list: %v, %T\n", overlappingTasks, overlappingTasks)
+			// if task.conflictsWith(overlappingTasks) {
+			// 	response := "Conflicting instruction!"
+			// 	w.Write([]byte(response))
+			// 	return
+			// }
 
 			//debug
 			// for _, id := range getActiveTaskIds() {

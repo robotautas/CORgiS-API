@@ -11,13 +11,17 @@ import (
 // structure to hold one Task of JSON instruction
 // used for marshalling and unmarshalling JSON instructions
 type Task struct {
-	Vxx        map[string][][2]int `json:"Vxx,omitempty"`
-	Txx        map[string]int      `json:"Txx,omitempty"`
-	Pump       string              `json:"PUMP,omitempty"`
-	Sleep      int                 `json:"Sleep"`
-	StartTime  time.Time           `json:"start,omitempty"`
-	FinishTime time.Time           `json:"finish,omitempty"`
+	Vxx           map[string][][2]int `json:"Vxx,omitempty"`
+	Txx           map[string]int      `json:"Txx,omitempty"`
+	Pump          string              `json:"PUMP,omitempty"`
+	Sleep         int                 `json:"Sleep"`
+	StartTime     time.Time           `json:"start,omitempty"`
+	FinishTime    time.Time           `json:"finish,omitempty"`
+	Id            int                 `json:"id,omitempty"`
+	InstructionId int                 `json:"instructionId,omitempty"`
 }
+
+type Instruction map[int][]int
 
 var exampleJSON string = `[
     {
@@ -185,4 +189,9 @@ func addTimeIntervals(tasks []Task) []Task {
 func (t *Task) addTimeInterval(s time.Time, f time.Time) {
 	t.StartTime = s
 	t.FinishTime = f
+}
+
+func (t *Task) addIds(instructionId int, taskId int) {
+	t.InstructionId = instructionId
+	t.Id = taskId
 }

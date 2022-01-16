@@ -165,9 +165,9 @@ func getAllRunningTasksNonDefaultRequirements() {
 		task := JSONToTask(JSONById)
 		activeTasks = append(activeTasks, task)
 	}
-	// for _, t := range activeTasks {
-	// 	printInfo("ATATATATA %v", t)
-	// }
+	for _, t := range activeTasks {
+		printInfo("ATATATATA %v", t)
+	}
 }
 
 func flushRedis() {

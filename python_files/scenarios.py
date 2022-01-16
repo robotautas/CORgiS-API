@@ -5,20 +5,27 @@ from time import sleep
 json_1 = '''
 [
     {
-        "Vxx": {"V08": [[7, 1], [6, 1]],
-                "V07": [[7, 1], [6, 1]]},
-        "Txx": {"T01": 100},
+        "Vxx": {"V08": [[7, 1]]},
         "PUMP": "ON",
         "Sleep": 10
+    },
+    {
+        "Vxx": {"V08": [[6, 1]]},
+        "PUMP": "ON",
+        "Sleep": 30
     }
 ]'''
 json_2 = '''
 [
     {
-        "Vxx": {"V08": [[6, 1]]},
-        "Txx": {"T02": 200},
-        "PUMP": "OFF",
-        "Sleep": 6
+        "Vxx": {"V08": [[0, 1]]},
+        "PUMP": "ON",
+        "Sleep": 5
+    },
+    {
+        "Vxx": {"V08": [[6, 0]]},
+        "PUMP": "ON",
+        "Sleep": 30
     }
 ]'''
 json_3 = '''
@@ -50,8 +57,8 @@ def send(instruction):
 # Proceduuuura :)
 
 send(instructions[0])
-# sleep(3)
-# send(instructions[1])
+sleep(3)
+send(instructions[1])
 # sleep(3)
 # send(instructions[2])
 # sleep(3)
