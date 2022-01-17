@@ -34,6 +34,7 @@ var OS = runtime.GOOS
 
 func main() {
 	flushRedis()
+	initInstructionArrayRedis()
 	go DB_routine()
 	http.HandleFunc("/", RootHandler)
 	http.HandleFunc("/set", SetHandler)

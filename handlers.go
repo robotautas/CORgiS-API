@@ -132,7 +132,6 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// create instruction id
-		// var instruction Instruction
 		instruction := make(Instruction)
 		var instructionId int
 		mutex.Lock()
@@ -148,7 +147,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		mutex.Unlock()
 
-		// register in redis
+		// modify tasks so that they know their ids, write them to redis
 		var taskIds []int
 		var modifiedTasks []Task
 		for _, task := range tasks {
@@ -157,19 +156,22 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 				random := randInt(1000, 9999)
 				if !idInRedisArray("activeTaskIds", random) {
 					task.addIds(instructionId, random)
-					// printInfo("TASKTASKTASK %v", task)
 					taskJSON := taskToJSON(task)
 					storeActiveTask(random, taskJSON)
+					taskIds = append(taskIds, random)
 					modifiedTasks = append(modifiedTasks, task)
 					break
 				}
 			}
 		}
-
+		printInfo("Instructions %v", instructionIds)
 		tasks = modifiedTasks
-		printError("AFTER MOD: %v", tasks)
+
+		// write instruction - task map to redis
+
 		instruction[instructionId] = taskIds
-		printError("%v", instruction)
+		printError("INSTRUCTION before redis: %v", instruction)
+		addInstructionToRedis(instruction)
 
 		for _, task := range tasks {
 			printWarning("%v", task)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"strconv"
 	"time"
 
@@ -166,6 +167,20 @@ func removeIdFromRedisArr(redisArr string, id int) {
 	}
 }
 
+func addInstructionToRedis(i Instruction) {
+	res, err := json.Marshal(i)
+	if err != nil {
+		printError("Failed to marshall: %v\n", err)
+	}
+	printError("JSON Instruction: %v", string(res))
+	client := pool.Get()
+	defer client.Close()
+	_, err = client.Do("JSON.ARRAPPEND", "instruction", ".", res)
+	if err != nil {
+		panic(err)
+	}
+}
+
 //collect all active tasks, exclude requirements that are default, merge into one task
 func getAllRunningTasksNonDefaultRequirements() {
 	var activeTasks []Task
@@ -176,6 +191,15 @@ func getAllRunningTasksNonDefaultRequirements() {
 	}
 	for _, t := range activeTasks {
 		printInfo("ATATATATA %v", t)
+	}
+}
+
+func initInstructionArrayRedis() {
+	client := pool.Get()
+	defer client.Close()
+	_, err := client.Do("JSON.SET", "instruction", ".", "[]")
+	if err != nil {
+		panic(err)
 	}
 }
 
