@@ -150,24 +150,29 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 
 		// register in redis
 		var taskIds []int
-
+		var modifiedTasks []Task
 		for _, task := range tasks {
 
 			for {
 				random := randInt(1000, 9999)
 				if !idInRedisArray("activeTaskIds", random) {
+					task.addIds(instructionId, random)
+					// printInfo("TASKTASKTASK %v", task)
 					taskJSON := taskToJSON(task)
 					storeActiveTask(random, taskJSON)
-					taskIds = append(taskIds, random)
+					modifiedTasks = append(modifiedTasks, task)
 					break
 				}
 			}
 		}
 
+		tasks = modifiedTasks
+		printError("AFTER MOD: %v", tasks)
 		instruction[instructionId] = taskIds
 		printError("%v", instruction)
 
 		for _, task := range tasks {
+			printWarning("%v", task)
 			//debug - atspausdina pakkankamai info, kad galima atsekti, ar nedaromos klaidos
 			for k, v := range task.Vxx {
 				printDebug("%v: %v", k, v)

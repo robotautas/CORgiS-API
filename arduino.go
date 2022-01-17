@@ -75,7 +75,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 	var instructionId int
 
 	activeInstructionsLimit := 1000
-	activeTasksLimit := 3000
+	// activeTasksLimit := 3000
 
 	if len(instructionIds) > activeInstructionsLimit {
 		printWarning("%d active instructions limit exceeded, abandoning instruction.", activeInstructionsLimit)
@@ -99,25 +99,25 @@ func excecuteInstruction(c chan int, tasks []Task) {
 	for _, task := range tasks {
 		// var taskId int
 
-		if len(getActiveTaskIds()) > activeTasksLimit {
-			printWarning("%d active tasks limit exceeded, abandoning instruction.", activeInstructionsLimit)
-			return
-		}
+		// if len(getActiveTaskIds()) > activeTasksLimit {
+		// 	printWarning("%d active tasks limit exceeded, abandoning instruction.", activeInstructionsLimit)
+		// 	return
+		// }
 
-		var taskId int
+		// var taskId int
 
-		for {
-			random := randInt(1000, 9999)
-			if !idInRedisArray("activeTaskIds", random) {
-				taskJSON := taskToJSON(task)
-				taskId = random
-				storeActiveTask(random, taskJSON)
-				break
-			}
-		}
+		// for {
+		// 	random := randInt(1000, 9999)
+		// 	if !idInRedisArray("activeTaskIds", random) {
+		// 		taskJSON := taskToJSON(task)
+		// 		taskId = random
+		// 		storeActiveTask(random, taskJSON)
+		// 		break
+		// 	}
+		// }
 
 		currentSettings := outputToMap(singleOutputRead())
-		printDebug("Starting task %v.", taskId)
+		printDebug("Starting task %v.", task.Id)
 		for k, v := range task.Vxx {
 			currentSetting := int(currentSettings[k].(int64))
 			changedSetting := vxxRequirementsToDec(currentSetting, v)
@@ -145,11 +145,11 @@ func excecuteInstruction(c chan int, tasks []Task) {
 			command := "<PUMP_OFF;>"
 			sendCommand(command)
 		}
-		printDebug("Task %v started!", taskId)
+		printDebug("Task %v started!", task.Id)
 		for i := 0; i < task.Sleep; i++ {
 			time.Sleep(1 * time.Second)
 		}
-		task.Stop(taskId)
+		task.Stop(task.Id)
 	}
 	printInfo("Instruction %v done!", instructionId)
 }

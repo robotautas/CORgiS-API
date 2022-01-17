@@ -121,6 +121,15 @@ func getActiveTaskIds() []int {
 	return list
 }
 
+func storeInstruction(id int) {
+	client := pool.Get()
+	defer client.Close()
+	_, err := client.Do("LPUSH", "instructions", id)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func getTasksTimeInterval(id int) (time.Time, time.Time) {
 	client := pool.Get()
 	defer client.Close()
