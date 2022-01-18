@@ -33,6 +33,7 @@ var pumpParams = []string{"PUMP_ON", "PUMP_OFF"}
 var OS = runtime.GOOS
 
 func main() {
+	sendCommand("<SET_V00=0;>")
 	flushRedis()
 	initInstructionArrayRedis()
 	go DB_routine()

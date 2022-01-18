@@ -172,7 +172,6 @@ func addInstructionToRedis(i Instruction) {
 	if err != nil {
 		printError("Failed to marshall: %v\n", err)
 	}
-	printError("JSON Instruction: %v", string(res))
 	client := pool.Get()
 	defer client.Close()
 	_, err = client.Do("JSON.ARRAPPEND", "instruction", ".", res)

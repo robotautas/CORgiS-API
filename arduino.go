@@ -21,6 +21,9 @@ func sendCommand(command string) {
 	defer mutexArduino.Unlock()
 	_, err := arduino.Write([]byte(command))
 	check(err)
+	if command != "<GET_ALL;>" {
+		printInfo("%v command sent!", command)
+	}
 	// take a nap
 	time.Sleep(time.Millisecond * 20)
 }
@@ -154,25 +157,22 @@ func excecuteInstruction(c chan int, tasks []Task) {
 	printInfo("Instruction %v done!", instructionId)
 }
 
-// Maybe in future add task id to task struct... :)
+// Transforms the running task to neutral and excecute
+// but only the settings that are not shared
 func (t *Task) Stop(taskId int) {
 	printInfo("Stopping task %v", taskId)
 	removeActiveTask(taskId)
 	removeIdFromRedisArr("activeTaskIds", taskId)
 	removeFromKillList(taskId)
-	// getAllRunningTasksNonDefaultRequirements()
+
+	// neutralise task - set all task requirements to defaults
 	t.resetToDefaults(&defaults)
+
+	// get all current settings in decimal values, for changing later
 	currentSettings := outputToMap(singleOutputRead())
-
-	// return to defaults only values that are not in use
-	// step 1
-	// need to collect all requirements of all running
-	// tasks into one Task
-	// compare them to defaults
-	// leave only requirements that are not default
-
 	activeIds := getActiveTaskIds()
 
+	// if the stopping task is the only one running at the time, just excecute neutralised task
 	if len(activeIds) < 1 {
 		printDebug("no active instructions")
 		printDebug("excecuting neutralised task")
@@ -183,14 +183,21 @@ func (t *Task) Stop(taskId int) {
 			command := fmt.Sprintf("<SET_%v=%v;>", k, changedSetting)
 			sendCommand(command)
 		}
+		//else iterate over active tasks to identify if stopping task will not interfere
+		//and excecute only the parts which will not
 	} else {
-		for _, id := range getActiveTaskIds() {
+		for _, id := range activeIds {
+			// read active task and convert to native
 			JSONById := readActiveTask(id)
 			comparedTask := JSONToTask(JSONById)
+
+			// iterate through the stopping task
 			for kT, vT := range t.Vxx {
+
 				// make a copy of current Vxx iteration
 				newVT := make([][2]int, len(t.Vxx[kT]))
 				copy(newVT, t.Vxx[kT])
+
 				for kC, vC := range comparedTask.Vxx {
 					// like if V00 = V00
 					if kT == kC {
@@ -200,6 +207,7 @@ func (t *Task) Stop(taskId int) {
 								// if first num of [2]int slice matches
 								// remove requirement from neutralised task
 								// as it is used elsewhere and cant be excecuted
+
 								if reqT[0] == reqC[0] {
 									newVT = removeRequirement(newVT, reqT)
 								}
@@ -210,7 +218,6 @@ func (t *Task) Stop(taskId int) {
 				currentSetting := int(currentSettings[kT].(int64))
 				changedSetting := vxxRequirementsToDec(currentSetting, newVT)
 				command := fmt.Sprintf("<SET_%v=%v;>", kT, changedSetting)
-				printError(command)
 				sendCommand(command)
 				printInfo("Task %v stopped.", taskId)
 			}

@@ -164,17 +164,15 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		printInfo("Instructions %v", instructionIds)
+		// printInfo("Instructions %v", instructionIds)
 		tasks = modifiedTasks
 
-		// write instruction - task map to redis
-
+		// write instruction-task map to redis
 		instruction[instructionId] = taskIds
-		printError("INSTRUCTION before redis: %v", instruction)
 		addInstructionToRedis(instruction)
 
 		for _, task := range tasks {
-			printWarning("%v", task)
+			// printWarning("%v", task)
 			//debug - atspausdina pakkankamai info, kad galima atsekti, ar nedaromos klaidos
 			for k, v := range task.Vxx {
 				printDebug("%v: %v", k, v)

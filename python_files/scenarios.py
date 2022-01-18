@@ -12,7 +12,7 @@ json_1 = '''
     {
         "Vxx": {"V08": [[6, 1]]},
         "PUMP": "ON",
-        "Sleep": 30
+        "Sleep": 10
     }
 ]'''
 json_2 = '''
@@ -57,8 +57,8 @@ def send(instruction):
 # Proceduuuura :)
 
 send(instructions[0])
-sleep(3)
-send(instructions[1])
+# sleep(3)
+# send(instructions[1])
 # sleep(3)
 # send(instructions[2])
 # sleep(3)
