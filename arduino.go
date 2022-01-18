@@ -174,9 +174,7 @@ func (t *Task) Stop(taskId int) {
 
 	// if the stopping task is the only one running at the time, just excecute neutralised task
 	if len(activeIds) < 1 {
-		printDebug("no active instructions")
-		printDebug("excecuting neutralised task")
-		printError("%v", t)
+		printDebug("excecuting neutralised task - excecuting neutralised task")
 		for k, v := range t.Vxx {
 			currentSetting := int(currentSettings[k].(int64))
 			changedSetting := vxxRequirementsToDec(currentSetting, v)
@@ -217,8 +215,10 @@ func (t *Task) Stop(taskId int) {
 				}
 				currentSetting := int(currentSettings[kT].(int64))
 				changedSetting := vxxRequirementsToDec(currentSetting, newVT)
-				command := fmt.Sprintf("<SET_%v=%v;>", kT, changedSetting)
-				sendCommand(command)
+				if currentSetting != changedSetting {
+					command := fmt.Sprintf("<SET_%v=%v;>", kT, changedSetting)
+					sendCommand(command)
+				}
 				printInfo("Task %v stopped.", taskId)
 			}
 		}
