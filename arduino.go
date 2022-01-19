@@ -167,10 +167,10 @@ func (t *Task) Stop(taskId int) {
 
 	// neutralise task - set all task requirements to defaults
 	t.resetToDefaults(&defaults)
-
+	printError("NEUTRALISED: %v", t)
 	// get all current settings in decimal values, for changing later
 	currentSettings := outputToMap(singleOutputRead())
-	activeIds := getActiveTaskIds()
+	activeIds := t.overlappingTasks()
 
 	// if the stopping task is the only one running at the time, just excecute neutralised task
 	if len(activeIds) < 1 {
@@ -181,11 +181,12 @@ func (t *Task) Stop(taskId int) {
 			command := fmt.Sprintf("<SET_%v=%v;>", k, changedSetting)
 			sendCommand(command)
 		}
-		//else iterate over active tasks to identify if stopping task will not interfere
+		//else iterate over active tasks to identify if stopping task will not interfer
 		//and excecute only the parts which will not
 	} else {
 		for _, id := range activeIds {
 			// read active task and convert to native
+			// cia turi buti conditional statement, kad jeigu taskas persidengia laike.
 			JSONById := readActiveTask(id)
 			comparedTask := JSONToTask(JSONById)
 
