@@ -181,6 +181,33 @@ func (t *Task) conflictsWith(ids []int) bool {
 	return false
 }
 
+// check if requirement is used in active and running tasks, doesn't matter conflicting or not
+// e.g. see if V00 value {{1, 1}, {2, 1}, {3, 1}} has requirement {7, 1} in it
+// similar to conflictsWith function, except it searches for other usages of boad channel,
+// no matter if conflicting. Used in task stopping.
+func requirementUsedElsewhere(param string, req [2]int, instrID int) bool {
+	for _, id := range getActiveTaskIds() {
+		JSONById := readActiveTask(id)
+		comparedTask := JSONToTask(JSONById)
+		// make sure we're not checking future tasks
+		// don't checck tasks from the same instruction, cause time.now might be milliseconds ahead.
+		if time.Now().Local().After(comparedTask.StartTime) &&
+			comparedTask.InstructionId != instrID {
+			for k, v := range comparedTask.Vxx {
+				if k == param {
+					for _, i := range v {
+						if i[0] == req[0] {
+							printError("req %v is used in task %v, where %v=%v", req, comparedTask.Id, k, v)
+							return true
+						}
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
 func check(err error) {
 	if err != nil {
 		color.Set(color.FgRed)

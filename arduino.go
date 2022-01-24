@@ -167,10 +167,27 @@ func (t *Task) Stop(taskId int) {
 
 	// neutralise task - set all task requirements to defaults
 	t.resetToDefaults(&defaults)
-	printError("NEUTRALISED: %v", t)
+
 	// get all current settings in decimal values, for changing later
 	currentSettings := outputToMap(singleOutputRead())
 	activeIds := t.overlappingTasks()
+
+	// make copy of t for aggregation
+	stoppingTask := *t
+	printWarning("STOPPING TASK BEFORE REMOVED REQUIREMENT %v", stoppingTask)
+
+	for k, v := range t.Vxx {
+		updatedReqs := stoppingTask.Vxx[k]
+		for _, req := range v {
+			if requirementUsedElsewhere(k, req, t.InstructionId) {
+				updatedReqs = removeRequirement(updatedReqs, req)
+				printWarning("REMOVED REQ %v", req)
+			}
+			stoppingTask.Vxx[k] = updatedReqs
+		}
+	}
+
+	printWarning("STOPPING TASK AFTER REMOVED REQUIREMENT %v", stoppingTask)
 
 	// if the stopping task is the only one running at the time, just excecute neutralised task
 	if len(activeIds) < 1 {
@@ -184,45 +201,13 @@ func (t *Task) Stop(taskId int) {
 		//else iterate over active tasks to identify if stopping task will not interfer
 		//and excecute only the parts which will not
 	} else {
-		for _, id := range activeIds {
-			// read active task and convert to native
-			// cia turi buti conditional statement, kad jeigu taskas persidengia laike.
-			JSONById := readActiveTask(id)
-			comparedTask := JSONToTask(JSONById)
-
-			// iterate through the stopping task
-			for kT, vT := range t.Vxx {
-
-				// make a copy of current Vxx iteration
-				newVT := make([][2]int, len(t.Vxx[kT]))
-				copy(newVT, t.Vxx[kT])
-
-				for kC, vC := range comparedTask.Vxx {
-					// like if V00 = V00
-					if kT == kC {
-						// comparing two arrays like {{1, 1}, {5,0}}
-						for _, reqT := range vT {
-							for _, reqC := range vC {
-								// if first num of [2]int slice matches
-								// remove requirement from neutralised task
-								// as it is used elsewhere and cant be excecuted
-
-								if reqT[0] == reqC[0] {
-									newVT = removeRequirement(newVT, reqT)
-								}
-							}
-						}
-					}
-				}
-				currentSetting := int(currentSettings[kT].(int64))
-				changedSetting := vxxRequirementsToDec(currentSetting, newVT)
-				if currentSetting != changedSetting {
-					command := fmt.Sprintf("<SET_%v=%v;>", kT, changedSetting)
-					sendCommand(command)
-				}
-				printInfo("Task %v stopped.", taskId)
-			}
+		for k, v := range stoppingTask.Vxx {
+			currentSetting := int(currentSettings[k].(int64))
+			changedSetting := vxxRequirementsToDec(currentSetting, v)
+			command := fmt.Sprintf("<SET_%v=%v;>", k, changedSetting)
+			sendCommand(command)
 		}
+		printInfo("Task %v stopped.", taskId)
 	}
 }
 
