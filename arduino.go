@@ -100,24 +100,6 @@ func excecuteInstruction(c chan int, tasks []Task) {
 
 	// register and excecute tasks one by one
 	for _, task := range tasks {
-		// var taskId int
-
-		// if len(getActiveTaskIds()) > activeTasksLimit {
-		// 	printWarning("%d active tasks limit exceeded, abandoning instruction.", activeInstructionsLimit)
-		// 	return
-		// }
-
-		// var taskId int
-
-		// for {
-		// 	random := randInt(1000, 9999)
-		// 	if !idInRedisArray("activeTaskIds", random) {
-		// 		taskJSON := taskToJSON(task)
-		// 		taskId = random
-		// 		storeActiveTask(random, taskJSON)
-		// 		break
-		// 	}
-		// }
 
 		currentSettings := outputToMap(singleOutputRead())
 		printDebug("Starting task %v.", task.Id)
@@ -155,6 +137,7 @@ func excecuteInstruction(c chan int, tasks []Task) {
 		task.Stop(task.Id)
 	}
 	printInfo("Instruction %v done!", instructionId)
+	removeInstructionFromRedis(instructionId)
 }
 
 // Transforms the running task to neutral and excecute

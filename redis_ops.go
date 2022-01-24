@@ -10,6 +10,8 @@ import (
 
 // CONSIDER REFACTORING USING PACKAGE LEVEL VARIABLES WITH MUTEXES INSTEAD
 
+type InstructionsMap []map[int][]int
+
 var pool = newPool()
 
 func newPool() *redis.Pool {
@@ -180,16 +182,34 @@ func addInstructionToRedis(i Instruction) {
 	}
 }
 
-//collect all active tasks, exclude requirements that are default, merge into one task
-func getAllRunningTasksNonDefaultRequirements() {
-	var activeTasks []Task
-	for _, id := range getActiveTaskIds() {
-		JSONById := readActiveTask(id)
-		task := JSONToTask(JSONById)
-		activeTasks = append(activeTasks, task)
+func removeInstructionFromRedis(id int) {
+	client := pool.Get()
+	defer client.Close()
+	i, err := client.Do("JSON.GET", "instruction")
+	if err != nil {
+		panic(err)
 	}
-	for _, t := range activeTasks {
-		printInfo("ATATATATA %v", t)
+
+	res := i.([]byte)
+	var instructions InstructionsMap
+	err = json.Unmarshal(res, &instructions)
+	if err != nil {
+		panic(err)
+	}
+
+	found := false
+
+	for idx, item := range instructions {
+		for k := range item {
+			if k == id {
+				client.Do("JSON.ARRPOP", "instruction", ".", idx)
+				found = true
+			}
+		}
+	}
+
+	if !found {
+		printError("Id %v not found in Redis instruction list!", id)
 	}
 }
 

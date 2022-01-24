@@ -122,10 +122,6 @@ func vxxRequirementsToDec(currentVal int, c [][2]int) int {
 	// some debugging prints, to be erased in future
 	printDebug("Current value %v, received requirement %v, converting to %v, which is %v in decimal.",
 		currentValToBin, c, newBinArr, binArrayToDec(newBinArr))
-	// printDebug("%v\n", c)
-	// printDebug("%v\n", currentValToBin)
-	// printDebug("%v\n", newBinArr)
-	// printDebug("%v\n", binArrayToDec(newBinArr))
 	return binArrayToDec(newBinArr)
 }
 
