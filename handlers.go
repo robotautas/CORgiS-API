@@ -106,8 +106,6 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 
 // Accepts JSON string from request, starts a process routine
 func StartHandler(w http.ResponseWriter, r *http.Request) {
-	// c := make(chan int)
-	// fmt.Printf("%v", r.Body)
 
 	decoder := json.NewDecoder(r.Body)
 	var body []Task
@@ -137,7 +135,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 		mutex.Lock()
 		for {
 			random := randInt(1000, 9999)
-			// printDebug("INSTRUCTION ID DEBUG %v", random)
+
 			if !intInSlice(instructionIds, random) {
 				instructionId = random
 				// this became redundant, refactor to redis only in future
@@ -164,7 +162,6 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		// printInfo("Instructions %v", instructionIds)
 		tasks = modifiedTasks
 
 		// write instruction-task map to redis
@@ -177,31 +174,11 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 			for k, v := range task.Vxx {
 				printDebug("%v: %v", k, v)
 			}
-			// printDebug("Start : %v", task.StartTime)
-			// printDebug("Start : %v", task.FinishTime)
-			// printDebug("ACTIVE IDS: %v", getActiveTaskIds())
-			//end debug
-
-			// making sure that all tasks in the instruction won't affect other running tasks
-			// overlappingTasks := task.overlappingTasks()
-			// // printDebug("Overlapping list: %v, %T\n", overlappingTasks, overlappingTasks)
-			// if task.conflictsWith(overlappingTasks) {
-			// 	response := "Conflicting instruction!"
-			// 	w.Write([]byte(response))
-			// 	return
-			// }
-
-			//debug
-			// for _, id := range getActiveTaskIds() {
-			// 	comparableStartTime, comparableFinishTime := getTasksTimeInterval(id)
-			// 	printInfo("ID: %v, s: %v, f: %v", id, comparableStartTime, comparableFinishTime)
-			// }
-			//end debug
 		}
-		c := make(chan int)
-		go excecuteInstruction(c, tasks)
-		cToString := strconv.Itoa(<-c)
-		w.Write([]byte(cToString))
+
+		go excecuteInstruction(instructionId, tasks)
+		idToString := strconv.Itoa(instructionId)
+		w.Write([]byte(idToString))
 	}
 }
 

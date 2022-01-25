@@ -73,30 +73,8 @@ func getSerialNumbers(path string) []string {
 }
 
 // excecutes instruction represented as []Task
-func excecuteInstruction(c chan int, tasks []Task) {
+func excecuteInstruction(instructionId int, tasks []Task) {
 	// unique instruction id created and stored to package level list
-	var instructionId int
-
-	activeInstructionsLimit := 1000
-	// activeTasksLimit := 3000
-
-	if len(instructionIds) > activeInstructionsLimit {
-		printWarning("%d active instructions limit exceeded, abandoning instruction.", activeInstructionsLimit)
-		return
-	}
-
-	mutex.Lock()
-	for {
-		random := randInt(1000, 9999)
-		// printDebug("INSTRUCTION ID DEBUG %v", random)
-		if !intInSlice(instructionIds, random) {
-			instructionId = random
-			instructionIds = append(instructionIds, instructionId)
-			break
-		}
-	}
-	mutex.Unlock()
-	c <- instructionId
 
 	// register and excecute tasks one by one
 	for _, task := range tasks {
@@ -107,19 +85,11 @@ func excecuteInstruction(c chan int, tasks []Task) {
 			currentSetting := int(currentSettings[k].(int64))
 			changedSetting := vxxRequirementsToDec(currentSetting, v)
 			command := fmt.Sprintf("<SET_%v=%v;>", k, changedSetting)
-			// arduino.ResetInputBuffer()
-			// _, err := arduino.Write([]byte(command))
-			// check(err)
-			// time.Sleep(time.Millisecond * 20)
 			sendCommand(command)
 		}
 
 		for k, v := range task.Txx {
 			command := fmt.Sprintf("<SET_%v=%v;>", k, v)
-			// printDebug("TEMP COMMAND: %s", command)
-			// _, err := arduino.Write([]byte(command))
-			// check(err)
-			// time.Sleep(time.Millisecond * 20)
 			sendCommand(command)
 		}
 
