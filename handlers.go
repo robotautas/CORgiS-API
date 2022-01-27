@@ -82,7 +82,7 @@ func SetHandler(w http.ResponseWriter, r *http.Request) {
 				time.Sleep(80 * time.Millisecond)
 			}
 		}
-		// temperature is inertical, so it doesn't really need imediate response
+		// temperature is inertic, so it doesn't really need imediate response
 	} else if stringInSlice(param, TxxParams) {
 		answer := outputToMap(singleOutputRead())
 		jsonString, err := json.Marshal(answer)

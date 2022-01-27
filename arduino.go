@@ -74,32 +74,39 @@ func getSerialNumbers(path string) []string {
 
 // excecutes instruction represented as []Task
 func excecuteInstruction(instructionId int, tasks []Task) {
-	// unique instruction id created and stored to package level list
 
 	// register and excecute tasks one by one
 	for _, task := range tasks {
 
+		multiCommand := "<"
 		currentSettings := outputToMap(singleOutputRead())
 		printDebug("Starting task %v.", task.Id)
 		for k, v := range task.Vxx {
 			currentSetting := int(currentSettings[k].(int64))
 			changedSetting := vxxRequirementsToDec(currentSetting, v)
-			command := fmt.Sprintf("<SET_%v=%v;>", k, changedSetting)
-			sendCommand(command)
+			command := fmt.Sprintf("SET_%v=%v;", k, changedSetting)
+			// sendCommand(command)
+			multiCommand += command
 		}
 
 		for k, v := range task.Txx {
-			command := fmt.Sprintf("<SET_%v=%v;>", k, v)
-			sendCommand(command)
+			command := fmt.Sprintf("SET_%v=%v;", k, v)
+			multiCommand += command
+			// sendCommand(command)
 		}
 
 		if task.Pump == "ON" {
-			command := "<PUMP_ON;>"
-			sendCommand(command)
+			command := "PUMP_ON;"
+			// sendCommand(command)
+			multiCommand += command
 		} else if task.Pump == "OFF" {
-			command := "<PUMP_OFF;>"
-			sendCommand(command)
+			command := "PUMP_OFF;"
+			// sendCommand(command)
+			multiCommand += command
 		}
+		multiCommand += ">"
+		sendCommand(multiCommand)
+
 		printDebug("Task %v started!", task.Id)
 		for i := 0; i < task.Sleep; i++ {
 			time.Sleep(1 * time.Second)
