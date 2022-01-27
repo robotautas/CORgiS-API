@@ -12,6 +12,24 @@ import (
 	"github.com/fatih/color"
 )
 
+// formats multi command string from provided map
+func formatMultiCommand(m map[string]interface{}) string {
+	commandString := "<"
+	for k, v := range m {
+		if strings.HasPrefix(k, "V") ||
+			strings.HasPrefix(k, "T") {
+			value := strconv.Itoa(v.(int))
+			command := "SET_" + k + "=" + value + ";"
+			commandString += command
+		} else if strings.HasPrefix(k, "PUMP") {
+			value := v.(string)
+			command := k + "_" + value + ";"
+			commandString += command
+		}
+	}
+	return commandString + ">"
+}
+
 // Validates raw arduino output against regex pattern and few other conditions.
 func outputIsValid(s string, re *regexp.Regexp) bool {
 	if len(s) > 168 && len(s) < 215 {
