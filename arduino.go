@@ -110,6 +110,13 @@ func excecuteInstruction(instructionId int, tasks []Task) {
 		printDebug("Task %v started!", task.Id)
 		for i := 0; i < task.Sleep; i++ {
 			time.Sleep(1 * time.Second)
+			if intInSlice(killInstructionIds, instructionId) {
+				printInfo("Stopping instruction %v by stop request", instructionId)
+				task.Stop(task.Id)
+				// remove instruction and remaining tasks from database
+				printInfo("Instruction %v stopped.", instructionId)
+				return
+			}
 		}
 		task.Stop(task.Id)
 	}
