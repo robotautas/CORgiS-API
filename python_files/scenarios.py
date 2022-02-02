@@ -71,11 +71,11 @@ def send(instruction):
 
 send(instructions[0])
 sleep(8)
-send(instructions[1])
-sleep(8)
-send(instructions[2])
-sleep(8)
-send(instructions[3])
+# send(instructions[1])
+# sleep(8)
+# send(instructions[2])
+# sleep(8)
+# send(instructions[3])
 # sleep(3)
 
 
