@@ -108,12 +108,19 @@ func excecuteInstruction(instructionId int, tasks []Task) {
 		sendCommand(multiCommand)
 
 		printDebug("Task %v started!", task.Id)
+
 		for i := 0; i < task.Sleep; i++ {
 			time.Sleep(1 * time.Second)
+			// checking for kill signal from request every second
 			if intInSlice(killInstructionIds, instructionId) {
 				printInfo("Stopping instruction %v by stop request", instructionId)
 				task.Stop(task.Id)
 				// remove instruction and remaining tasks from database
+				instructionTasks := getTaskIdsFromInstruction(instructionId)
+				for _, task := range instructionTasks {
+					removeActiveTask(task)
+				}
+				removeInstructionFromRedis(instructionId)
 				printInfo("Instruction %v stopped.", instructionId)
 				return
 			}

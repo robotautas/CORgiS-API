@@ -182,6 +182,40 @@ func addInstructionToRedis(i Instruction) {
 	}
 }
 
+func getTaskIdsFromInstruction(id int) []int {
+	client := pool.Get()
+	defer client.Close()
+	i, err := client.Do("JSON.GET", "instruction")
+	if err != nil {
+		panic(err)
+	}
+
+	res := i.([]byte)
+	// InstructionsMap type is not optimal, consider changing to map[int][]int in future???
+	var instructions InstructionsMap
+	err = json.Unmarshal(res, &instructions)
+	if err != nil {
+		panic(err)
+	}
+
+	found := false
+	var returnValue []int
+
+	for _, item := range instructions {
+		for k, v := range item {
+			if k == id {
+				found = true
+				returnValue = v
+			}
+		}
+	}
+
+	if !found {
+		printError("Id %v not found in Redis instruction list!", id)
+	}
+	return returnValue
+}
+
 func removeInstructionFromRedis(id int) {
 	client := pool.Get()
 	defer client.Close()
