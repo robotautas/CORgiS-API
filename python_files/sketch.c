@@ -688,7 +688,7 @@ void PrintData(void)
   Serial.print(T17 + random(0, 3), DEC);
   Serial.print(";T18=");
   Serial.print(T18 + random(0, 3), DEC);
-  Serial.print(";T191=");
+  Serial.print(";T19=");
   Serial.print(T19 + random(0, 3), DEC);
   Serial.print(";T20=");
   Serial.print(T20 + random(0, 3), DEC);
