@@ -39,6 +39,7 @@ func findArduinoPort() string {
 			for _, port := range ports {
 				if port.IsUSB {
 					for _, sn := range getSerialNumbers("serial_numbers.txt") {
+						printError("SN: %v", port.SerialNumber)
 						if sn == port.SerialNumber {
 							return port.Name
 						}

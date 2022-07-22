@@ -28,6 +28,16 @@ func newPool() *redis.Pool {
 	}
 }
 
+// func redisIsUp() bool {
+// 	client := pool.Get()
+// 	defer client.Close()
+// 	res, err := client.Do("ping")
+// 	if res != "PONG" || err != nil {
+// 		return false
+// 	}
+// 	return true
+// }
+
 func addToKillList(id int) {
 	client := pool.Get()
 	defer client.Close()
