@@ -267,6 +267,10 @@ http://127.0.0.1:9999/set?param=V00&value=255
 http://127.0.0.1:9999/set?param=T01&value=80
 http://127.0.0.1:9999/set?param=PUMP_OFF
 
+SETMULTI request examples:
+http://127.0.0.0:9999/setmulti?V08=255&PUMP_ON&T00=999
+!set multi does not check for confirmation, just sends the command.!
+
 GET_ALL:
 http://127.0.0.1:9999/getall
 
@@ -280,7 +284,7 @@ responds with unique id of a process, for pausing/stopping it later.
 
 STOP:
 stops a process with unique id, provided in URL
-http://127.0.0.1:9999/set?id=2345
+http://127.0.0.1:9999/stop?id=2345
 
 
 `, exampleJSON)

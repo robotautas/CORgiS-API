@@ -27,7 +27,7 @@ var arduino, _ = serial.Open(findArduinoPort(), mode)
 var re, _ = regexp.Compile(`\w{3,4}=\w{1,4};`)
 
 var VxxParams = []string{"V00", "V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08"}
-var TxxParams = []string{"T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08", "T09", "T10", "T11", "T12", "T13", "T14", "T15", "T16", "T17", "T18", "T19", "T20", "T21"}
+var TxxParams = []string{"T00", "T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08", "T09", "T10", "T11", "T12", "T13", "T14", "T15", "T16", "T17", "T18", "T19", "T20", "T21"}
 var pumpParams = []string{"PUMP_ON", "PUMP_OFF"}
 
 var OS = runtime.GOOS
@@ -39,6 +39,7 @@ func main() {
 	go DB_routine()
 	http.HandleFunc("/", RootHandler)
 	http.HandleFunc("/set", SetHandler)
+	http.HandleFunc("/setmulti", SetMultiHandler)
 	http.HandleFunc("/getall", GetHandler)
 	http.HandleFunc("/start", StartHandler)
 	http.HandleFunc("/stop", StopHandler)

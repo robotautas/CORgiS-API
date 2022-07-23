@@ -9,6 +9,38 @@ import (
 	"time"
 )
 
+func SetMultiHandler(w http.ResponseWriter, r *http.Request) {
+	urlParams := r.URL.Query().Encode()
+	params := strings.Split(urlParams, "&")
+	commands := "<"
+	for _, i := range params {
+		if strings.HasPrefix(i, "V") ||
+			strings.HasPrefix(i, "T") {
+			param := strings.Split(i, "=")[0]
+			value := strings.Split(i, "=")[1]
+			if !URLParamValid(param) {
+				w.Write([]byte(fmt.Sprintf("error: unknown param %s!", param)))
+				return
+			} else if !URLValueValid(param, value) {
+				w.Write([]byte(fmt.Sprintf("error: invalid value %s for param %s!", value, param)))
+				return
+			} else {
+				commands = commands + fmt.Sprintf("SET_%s=%s;", param, value)
+			}
+		} else if i == "PUMP_ON=" {
+			commands = commands + "PUMP_ON;"
+		} else if i == "PUMP_OFF=" {
+			commands = commands + "PUMP_OFF;"
+		} else {
+			w.Write([]byte(fmt.Sprintf("error: unable to parse %s!", i)))
+			return
+		}
+	}
+	commands = commands + ">"
+	sendCommand(commands)
+	w.Write([]byte(fmt.Sprintf("command %s sent!", commands)))
+}
+
 func SetHandler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
